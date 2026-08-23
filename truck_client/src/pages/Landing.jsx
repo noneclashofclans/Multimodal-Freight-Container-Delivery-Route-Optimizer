@@ -1,38 +1,45 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 
 const Home = () => {
+  const navigate = useNavigate();
+
   return (
     <main>
-        <Navbar></Navbar>
+      <Navbar />
+
       {/* HERO */}
       <section
         className="py-5"
         style={{
-          background:
-            "linear-gradient(135deg,#fff8dc,#ffffff)",
+          background: "linear-gradient(135deg,#fff8dc,#ffffff)",
         }}
       >
         <div className="container py-5">
           <div className="row align-items-center g-5">
-
             <div className="col-lg-6">
-              <h1 className="display-3 fw-bold">
-                Smarter routes.
+              <h1 className="display-4 fw-bold">
+                Intelligent Freight Forecasting
                 <br />
                 <span className="text-warning">
-                  Faster deliveries.
+                  for Smarter Vessel Chartering
                 </span>
               </h1>
 
               <p className="lead text-secondary mt-4">
-                Optimise container transportation across road, rail,
-                sea and air with intelligent multimodal route planning.
+                A decision-support platform that helps procurement and logistics
+                teams forecast freight trends, identify the best chartering
+                window, and optimize bulk cargo imports to India’s East Coast
+                ports.
               </p>
 
               <div className="d-flex gap-3 mt-4">
-                <button className="btn btn-warning btn-lg px-4">
-                  Optimise Route →
+                <button
+                  className="btn btn-warning btn-lg px-4"
+                  onClick={() => navigate("/forecast_query")}
+                >
+                  Open Dashboard →
                 </button>
 
                 <button className="btn btn-outline-dark btn-lg px-4">
@@ -42,49 +49,44 @@ const Home = () => {
 
               <div className="row mt-5">
                 <div className="col-4">
-                  <h4 className="fw-bold text-warning">25%</h4>
+                  <h4 className="fw-bold text-warning">7</h4>
                   <small className="text-secondary">
-                    Cost Reduction
+                    East Coast Ports
                   </small>
                 </div>
 
                 <div className="col-4">
-                  <h4 className="fw-bold text-warning">35%</h4>
+                  <h4 className="fw-bold text-warning">4</h4>
                   <small className="text-secondary">
-                    Faster Delivery
+                    Bulk Carrier Types
                   </small>
                 </div>
 
                 <div className="col-4">
-                  <h4 className="fw-bold text-warning">4+</h4>
+                  <h4 className="fw-bold text-warning">6</h4>
                   <small className="text-secondary">
-                    Transport Modes
+                    Major Trade Routes
                   </small>
                 </div>
               </div>
             </div>
 
-
-            {/* ROUTE CARD */}
+            {/* DASHBOARD CARD */}
             <div className="col-lg-6">
-
               <div className="card border-0 shadow-lg rounded-4">
                 <div className="card-body p-4">
-
                   <div className="d-flex justify-content-between">
                     <div>
                       <small className="text-secondary">
-                        OPTIMISED ROUTE
+                        FREIGHT MARKET SNAPSHOT
                       </small>
-
                       <h4 className="fw-bold">
-                        Mumbai → Delhi
+                        Australia → Paradip
                       </h4>
                     </div>
 
-                    <span className="badge bg-success-subtle
-                      text-success rounded-pill h-25">
-                      ● Active
+                    <span className="badge bg-success-subtle text-success rounded-pill h-25">
+                      ● Forecast Stable
                     </span>
                   </div>
 
@@ -93,145 +95,141 @@ const Home = () => {
                     style={{
                       height: "230px",
                       backgroundColor: "#f8f8f2",
-                      backgroundImage:
-                        "linear-gradient(#e5e5dd 1px,transparent 1px)," +
-                        "linear-gradient(90deg,#e5e5dd 1px,transparent 1px)",
-                      backgroundSize: "35px 35px",
                     }}
                   >
-
-                    <div className="d-flex justify-content-between
-                      align-items-center h-100">
-
-                      <div className="text-center">
-                        <div className="bg-warning rounded-circle
-                          mx-auto mb-2"
-                          style={{
-                            width: "18px",
-                            height: "18px",
-                          }}
-                        />
-                        <small className="fw-bold">Mumbai</small>
+                    <div className="h-100 d-flex flex-column justify-content-center">
+                      <div className="d-flex justify-content-between mb-3">
+                        <strong>Loading</strong>
+                        <strong>Discharge</strong>
                       </div>
 
-                      <div className="flex-grow-1 mx-3">
-
-                        <div className="d-flex justify-content-around
-                          fs-5 mb-2">
-                          <span>🚢</span>
-                          <span>🚆</span>
-                          <span>🚛</span>
+                      <div className="d-flex justify-content-between align-items-center">
+                        <div className="text-center">
+                          <div
+                            className="bg-warning rounded-circle mx-auto mb-2"
+                            style={{ width: 18, height: 18 }}
+                          />
+                          <small>Newcastle</small>
                         </div>
 
-                        <hr className="border-warning border-3" />
+                        <div className="flex-grow-1 mx-3">
+                          <div className="text-center mb-2">🚢 Panamax</div>
+                          <hr className="border-warning border-3" />
+                        </div>
+
+                        <div className="text-center">
+                          <div
+                            className="bg-warning rounded-circle mx-auto mb-2"
+                            style={{ width: 18, height: 18 }}
+                          />
+                          <small>Paradip</small>
+                        </div>
                       </div>
 
-                      <div className="text-center">
-                        <div className="bg-warning rounded-circle
-                          mx-auto mb-2"
-                          style={{
-                            width: "18px",
-                            height: "18px",
-                          }}
-                        />
-                        <small className="fw-bold">Delhi</small>
+                      <div className="mt-4 text-center">
+                        <small className="text-secondary">
+                          AI Recommendation
+                        </small>
+                        <h5 className="fw-bold text-success mt-1">
+                          Lock Charter in 5–7 Days
+                        </h5>
                       </div>
-
                     </div>
                   </div>
 
                   <div className="row text-center border-top pt-3">
                     <div className="col-4">
                       <small className="text-secondary d-block">
-                        Distance
+                        Vessel
                       </small>
-                      <strong>1,420 km</strong>
+                      <strong>Panamax</strong>
                     </div>
 
                     <div className="col-4 border-start border-end">
                       <small className="text-secondary d-block">
-                        ETA
+                        Cargo
                       </small>
-                      <strong>28h 40m</strong>
+                      <strong>72,000 MT</strong>
                     </div>
 
                     <div className="col-4">
                       <small className="text-secondary d-block">
-                        CO₂ Saved
+                        Risk
                       </small>
-                      <strong className="text-success">18.4%</strong>
+                      <strong className="text-success">Low</strong>
                     </div>
                   </div>
-
                 </div>
               </div>
-
             </div>
           </div>
         </div>
       </section>
 
-
       {/* FEATURES */}
       <section className="py-5 bg-white" id="features">
         <div className="container py-4">
-
           <div className="text-center mb-5">
             <small className="text-warning fw-bold">
-              POWERFUL FEATURES
+              DECISION SUPPORT FEATURES
             </small>
 
             <h2 className="fw-bold mt-2">
-              Everything you need to optimise freight.
+              Everything needed for intelligent bulk cargo procurement.
             </h2>
 
             <p className="text-secondary">
-              One intelligent platform for your entire delivery journey.
+              AI-assisted reasoning layered on historical freight market trends
+              for proactive chartering decisions.
             </p>
           </div>
 
           <div className="row g-4">
-
             {[
-              ["🚛", "Multimodal Routing",
-                "Combine road, rail, sea and air into one efficient route."],
-
-              ["🧠", "AI Optimisation",
-                "Compare routes using cost, time and environmental impact."],
-
-              ["📍", "Real-Time Tracking",
-                "Monitor your container throughout its journey."],
-
-              ["🌱", "Green Logistics",
-                "Reduce fuel consumption and carbon emissions."]
+              [
+                "📈",
+                "Freight Trend Forecasting",
+                "Monitor historical and projected freight rate movements for Handysize, Supramax, Panamax and Capesize vessels."
+              ],
+              [
+                "⏱️",
+                "Optimal Charter Timing",
+                "Identify the most favorable market entry window before locking short or mid-term charter contracts."
+              ],
+              [
+                "🚢",
+                "Vessel Recommendation",
+                "Recommend suitable vessel classes based on cargo volume and operational requirements."
+              ],
+              [
+                "⚓",
+                "Port Compatibility",
+                "Evaluate draft, LOA, beam and cargo handling constraints across East Coast ports."
+              ],
+              [
+                "🔄",
+                "Idle-Time Reduction",
+                "Minimize deadheading between voyages through voyage planning suggestions."
+              ],
+              [
+                "⚠️",
+                "Risk & Congestion Alerts",
+                "Receive early warnings for freight volatility, market disruptions and port congestion."
+              ],
             ].map(([icon, title, text]) => (
-
-              <div className="col-md-6 col-lg-3" key={title}>
+              <div className="col-md-6 col-lg-4" key={title}>
                 <div className="card border-0 bg-light rounded-4 h-100">
                   <div className="card-body p-4">
-
-                    <div className="fs-1 mb-3">
-                      {icon}
-                    </div>
-
-                    <h5 className="fw-bold">
-                      {title}
-                    </h5>
-
-                    <p className="text-secondary small mb-0">
-                      {text}
-                    </p>
-
+                    <div className="fs-1 mb-3">{icon}</div>
+                    <h5 className="fw-bold">{title}</h5>
+                    <p className="text-secondary small mb-0">{text}</p>
                   </div>
                 </div>
               </div>
-
             ))}
-
           </div>
         </div>
       </section>
-
 
       {/* HOW IT WORKS */}
       <section
@@ -239,38 +237,38 @@ const Home = () => {
         style={{ backgroundColor: "#fff8dc" }}
       >
         <div className="container py-4">
-
           <div className="text-center mb-5">
             <small className="text-warning fw-bold">
-              HOW IT WORKS
+              WORKFLOW
             </small>
 
             <h2 className="fw-bold mt-2">
-              Plan. Optimise. Deliver.
+              Forecast. Evaluate. Charter.
             </h2>
           </div>
 
           <div className="row g-4 text-center">
-
             {[
-              ["01", "Enter Shipment",
-                "Provide your origin, destination and container details."],
-
-              ["02", "Optimise Route",
-                "Our system evaluates multiple multimodal combinations."],
-
-              ["03", "Track Delivery",
-                "Monitor your shipment until it reaches its destination."]
+              [
+                "01",
+                "Select Trade Route",
+                "Choose loading and discharge ports across Australia, Indonesia, Mozambique, Russia, the US and India."
+              ],
+              [
+                "02",
+                "Analyze Freight Market",
+                "Review freight trends, vessel availability and AI-generated charter timing recommendations."
+              ],
+              [
+                "03",
+                "Finalize Charter Strategy",
+                "Select the optimal vessel and reduce operational risk before procurement decisions."
+              ],
             ].map(([number, title, text]) => (
-
               <div className="col-md-4" key={number}>
-
                 <div className="p-4">
-
                   <div
-                    className="bg-warning text-white rounded-circle
-                      d-flex align-items-center justify-content-center
-                      mx-auto mb-3 fw-bold"
+                    className="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3 fw-bold"
                     style={{
                       width: "60px",
                       height: "60px",
@@ -280,26 +278,17 @@ const Home = () => {
                   </div>
 
                   <h5 className="fw-bold">{title}</h5>
-
-                  <p className="text-secondary small">
-                    {text}
-                  </p>
-
+                  <p className="text-secondary small">{text}</p>
                 </div>
-
               </div>
-
             ))}
-
           </div>
         </div>
       </section>
 
-
       {/* CTA */}
       <section className="py-5 bg-white">
         <div className="container">
-
           <div
             className="rounded-4 p-5 text-white"
             style={{
@@ -307,47 +296,41 @@ const Home = () => {
                 "linear-gradient(135deg,#c99400,#f0b900)",
             }}
           >
-
             <div className="row align-items-center">
-
               <div className="col-lg-8">
                 <small className="fw-bold">
-                  READY TO GET STARTED?
+                  BULK FREIGHT INTELLIGENCE
                 </small>
 
                 <h2 className="fw-bold mt-2">
-                  Find the smartest route
-                  for your next shipment.
+                  Make proactive chartering decisions backed by freight analytics.
                 </h2>
 
                 <p className="mb-0 opacity-75">
-                  Reduce delivery time, cost and environmental impact.
+                  Built for logistics managers and procurement teams handling
+                  overseas bulk cargo imports into India’s East Coast.
                 </p>
               </div>
 
               <div className="col-lg-4 text-lg-end mt-4 mt-lg-0">
-                <button className="btn btn-light btn-lg px-4">
-                  Start Optimising →
+                <button
+                  className="btn btn-light btn-lg px-4"
+                  onClick={() => navigate("/forecast_query")}
+                >
+                  Launch Dashboard →
                 </button>
               </div>
-
             </div>
-
           </div>
-
         </div>
       </section>
-
 
       {/* FOOTER */}
       <footer className="bg-dark text-white py-4">
         <div className="container">
-
-          <div className="d-flex justify-content-between
-            align-items-center flex-wrap gap-3">
-
+          <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <small>
-              © 2026 Freight Optimiser
+              © 2026 Intelligent Freight Forecasting System
             </small>
 
             <div className="d-flex gap-4">
@@ -355,14 +338,11 @@ const Home = () => {
               <small>Terms</small>
               <small>Contact</small>
             </div>
-
           </div>
-
         </div>
       </footer>
-
     </main>
   );
 };
 
-export default Home;
+export default Home;  

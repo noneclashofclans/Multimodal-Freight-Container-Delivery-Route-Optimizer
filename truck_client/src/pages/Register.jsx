@@ -16,22 +16,19 @@ const Register = () => {
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-md-8 col-lg-6">
-
               <div className="card border-0 shadow-lg rounded-4">
                 <div className="card-body p-5">
-
                   <div className="text-center mb-4">
-                    <div className="display-5 mb-3">📦</div>
+                    <div className="display-5 mb-3">⚓</div>
 
-                    <h2 className="fw-bold">Create Account</h2>
+                    <h2 className="fw-bold">Create Your Account</h2>
 
                     <p className="text-secondary mb-0">
-                      Join Freight Route Optimizer
+                      Join the Intelligent Freight Forecasting Platform
                     </p>
                   </div>
 
                   <form>
-
                     <div className="mb-3">
                       <label className="form-label fw-semibold">
                         Full Name
@@ -46,25 +43,25 @@ const Register = () => {
 
                     <div className="mb-3">
                       <label className="form-label fw-semibold">
-                        Company Name
+                        Organization
                       </label>
 
                       <input
                         type="text"
                         className="form-control form-control-lg"
-                        placeholder="Your logistics company"
+                        placeholder="Shipping, logistics or procurement company"
                       />
                     </div>
 
                     <div className="mb-3">
                       <label className="form-label fw-semibold">
-                        Email Address
+                        Business Email
                       </label>
 
                       <input
                         type="email"
                         className="form-control form-control-lg"
-                        placeholder="name@company.com"
+                        placeholder="procurement@company.com"
                       />
                     </div>
 
@@ -77,7 +74,7 @@ const Register = () => {
                         <input
                           type="password"
                           className="form-control form-control-lg"
-                          placeholder="Password"
+                          placeholder="Create password"
                         />
                       </div>
 
@@ -95,9 +92,8 @@ const Register = () => {
                     </div>
 
                     <button className="btn btn-warning w-100 btn-lg fw-semibold mt-2">
-                      Create Account
+                      Create Dashboard Account
                     </button>
-
                   </form>
 
                   <hr className="my-4" />
@@ -108,17 +104,16 @@ const Register = () => {
                       href="/login"
                       className="text-warning text-decoration-none fw-semibold"
                     >
-                      Login
+                      Sign In
                     </a>
                   </p>
-
                 </div>
               </div>
 
               <p className="text-center text-muted mt-3 small">
-                © 2026 Multimodal Freight Container Delivery Route Optimizer
+                © 2026 Intelligent Freight Forecasting System for Optimized
+                Vessel Chartering
               </p>
-
             </div>
           </div>
         </div>

@@ -1,93 +1,85 @@
 import React from "react";
-import Navbar from '../components/Navbar';
+import Navbar from "../components/Navbar";
 
 const Login = () => {
   return (
     <div>
+      <Navbar />
 
-        <Navbar />
-        <main
+      <main
         className="d-flex align-items-center justify-content-center"
         style={{
-            minHeight: "100vh",
-            background: "linear-gradient(135deg, #fff8dc, #ffffff)"
+          minHeight: "100vh",
+          background: "linear-gradient(135deg, #fff8dc, #ffffff)",
         }}
-        >
+      >
         <div className="container">
-
-
-            <div className="row justify-content-center">
+          <div className="row justify-content-center">
             <div className="col-md-8 col-lg-5">
-
-                <div className="card border-0 shadow-lg rounded-4">
+              <div className="card border-0 shadow-lg rounded-4">
                 <div className="card-body p-5">
-
-                    <div className="text-center mb-4">
-                    <div className="display-5 mb-3">🚛</div>
+                  <div className="text-center mb-4">
+                    <div className="display-5 mb-3">🚢</div>
 
                     <h2 className="fw-bold">Welcome Back</h2>
 
                     <p className="text-secondary mb-0">
-                        Sign in to Freight Route Optimizer
+                      Sign in to the Intelligent Freight Forecasting Dashboard
                     </p>
-                    </div>
+                  </div>
 
-                    <form>
-
+                  <form>
                     <div className="mb-3">
-                        <label className="form-label fw-semibold">
+                      <label className="form-label fw-semibold">
                         Email Address
-                        </label>
+                      </label>
 
-                        <input
+                      <input
                         type="email"
                         className="form-control form-control-lg"
-                        placeholder="name@company.com"
-                        />
+                        placeholder="procurement@company.com"
+                      />
                     </div>
 
-                    <div className="mb-3">
-                        <label className="form-label fw-semibold">
+                    <div className="mb-4">
+                      <label className="form-label fw-semibold">
                         Password
-                        </label>
+                      </label>
 
-                        <input
+                      <input
                         type="password"
                         className="form-control form-control-lg"
                         placeholder="Enter your password"
-                        />
+                      />
                     </div>
 
-
                     <button className="btn btn-warning w-100 btn-lg fw-semibold">
-                        Login
+                      Access Dashboard
                     </button>
+                  </form>
 
-                    </form>
+                  <hr className="my-4" />
 
-                    <hr className="my-4" />
-
-                    <p className="text-center mb-0 text-secondary">
-                    Don't have an account?{" "}
+                  <p className="text-center mb-0 text-secondary">
+                    New to the platform?{" "}
                     <a
-                        href="/register"
-                        className="text-warning text-decoration-none fw-semibold"
+                      href="/register"
+                      className="text-warning text-decoration-none fw-semibold"
                     >
-                        Register
+                      Create an account
                     </a>
-                    </p>
-
+                  </p>
                 </div>
-                </div>
+              </div>
 
-                <p className="text-center text-muted mt-3 small">
-                © 2026 Multimodal Freight Container Delivery Route Optimizer
-                </p>
-
+              <p className="text-center text-muted mt-3 small">
+                © 2026 Intelligent Freight Forecasting System for Optimized
+                Vessel Chartering
+              </p>
             </div>
-            </div>
+          </div>
         </div>
-        </main>
+      </main>
     </div>
   );
 };

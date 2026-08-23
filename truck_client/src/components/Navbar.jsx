@@ -1,10 +1,15 @@
 import React from "react";
-import { useNavigate } from 'react-router-dom'; 
+import { useNavigate, useLocation } from 'react-router-dom'; 
 import company_logo from "../assets/trucks.png";
 import "./Navbar.css";
 
 const Navbar = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+
+    const isHomePage = location.pathname === '/';
+    const isLoginPage = location.pathname === '/login';
+
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-white">
       <div className="container-fluid px-4 px-lg-5">
@@ -14,7 +19,7 @@ const Navbar = () => {
             src={company_logo}
             alt="Freight Optimiser"
             className="logo"
-            onClick={navigate('/')}
+            onClick={() => navigate('/')}
             style={{cursor: 'pointer'}}
           />
         </a>
@@ -39,7 +44,7 @@ const Navbar = () => {
           <ul className="navbar-nav mx-auto mb-2 mb-lg-0 gap-lg-2">
 
             <li className="nav-item">
-              <a className="nav-link">
+              <a className="nav-link" onClick={() => navigate('/')} style={{cursor: "pointer"}}>
                 Home
               </a>
             </li>
@@ -78,11 +83,13 @@ const Navbar = () => {
               </ul>
             </li>
 
-            <li className="nav-item">
-              <a className="nav-link" href="#features">
-                Features
-              </a>
-            </li>
+            {isHomePage && ( 
+              <li className="nav-item">
+                <a className="nav-link" href="#features">
+                  Features
+                </a>
+              </li>
+            )}
 
             <li className="nav-item">
               <a className="nav-link" href="/about">
@@ -94,15 +101,15 @@ const Navbar = () => {
 
           {/* Right Side */}
           <div className="navbar-actions">
-
-            <a href="/login" className="login-link">
-              Login
-            </a>
-
-            <a href="#optimise" className="btn optimise-btn">
-              Optimise Route
-              <span className="ms-2">→</span>
-            </a>
+            
+            {isLoginPage ? (
+              <p></p>
+            ) : (
+                <a href="/login" className="login-link">
+                  Login
+                  <span className="ms-2">→</span>
+                </a>
+            )}
 
           </div>
 
