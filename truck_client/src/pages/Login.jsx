@@ -1,7 +1,48 @@
-import React from "react";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 
 const Login = () => {
+  const navigate = useNavigate();
+
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+  });
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+
+    try {
+      const res = await fetch("http://localhost:7000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(form),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        return alert(data.message);
+      }
+
+      // Save token & user
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      alert("Login successful!");
+      navigate("/dashboard");
+    } catch (err) {
+      alert("Server connection failed");
+    }
+  };
+
   return (
     <div>
       <Navbar />
@@ -10,7 +51,7 @@ const Login = () => {
         className="d-flex align-items-center justify-content-center"
         style={{
           minHeight: "100vh",
-          background: "linear-gradient(135deg, #fff8dc, #ffffff)",
+          background: "linear-gradient(135deg,#fff8dc,#ffffff)",
         }}
       >
         <div className="container">
@@ -20,24 +61,25 @@ const Login = () => {
                 <div className="card-body p-5">
                   <div className="text-center mb-4">
                     <div className="display-5 mb-3">🚢</div>
-
                     <h2 className="fw-bold">Welcome Back</h2>
-
-                    <p className="text-secondary mb-0">
+                    <p className="text-secondary">
                       Sign in to the Intelligent Freight Forecasting Dashboard
                     </p>
                   </div>
 
-                  <form>
+                  <form onSubmit={handleLogin}>
                     <div className="mb-3">
                       <label className="form-label fw-semibold">
                         Email Address
                       </label>
-
                       <input
                         type="email"
+                        name="email"
                         className="form-control form-control-lg"
                         placeholder="procurement@company.com"
+                        value={form.email}
+                        onChange={handleChange}
+                        required
                       />
                     </div>
 
@@ -45,11 +87,14 @@ const Login = () => {
                       <label className="form-label fw-semibold">
                         Password
                       </label>
-
                       <input
                         type="password"
+                        name="password"
                         className="form-control form-control-lg"
                         placeholder="Enter your password"
+                        value={form.password}
+                        onChange={handleChange}
+                        required
                       />
                     </div>
 
@@ -58,23 +103,22 @@ const Login = () => {
                     </button>
                   </form>
 
-                  <hr className="my-4" />
+                  <hr />
 
-                  <p className="text-center mb-0 text-secondary">
+                  <p className="text-center text-secondary">
                     New to the platform?{" "}
-                    <a
-                      href="/register"
-                      className="text-warning text-decoration-none fw-semibold"
+                    <Link
+                      to="/register"
+                      className="text-warning fw-semibold text-decoration-none"
                     >
                       Create an account
-                    </a>
+                    </Link>
                   </p>
                 </div>
               </div>
 
               <p className="text-center text-muted mt-3 small">
-                © 2026 Intelligent Freight Forecasting System for Optimized
-                Vessel Chartering
+                © 2026 Intelligent Freight Forecasting System
               </p>
             </div>
           </div>
