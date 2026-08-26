@@ -1,31 +1,62 @@
 import React from "react";
-import { useNavigate, useLocation } from 'react-router-dom'; 
+import { useNavigate, useLocation, Link, NavLink } from "react-router-dom";
 import company_logo from "../assets/trucks.png";
 import "./Navbar.css";
 
 const Navbar = () => {
-    const navigate = useNavigate();
-    const location = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-    const isHomePage = location.pathname === '/';
-    const isLoginPage = location.pathname === '/login';
+  const isHomePage = location.pathname === "/";
+  const isLoginPage = location.pathname === "/login";
+
+  // Safe JSON parsing to prevent crashes
+  const getUserData = () => {
+    try {
+      return JSON.parse(localStorage.getItem("user"));
+    } catch {
+      return null;
+    }
+  };
+
+  const user = getUserData();
+  const isLoggedIn = !!localStorage.getItem("token");
+
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/");
+  };
+
+  // Helper to generate a 2-letter avatar from the user's name
+  const getInitials = (name) => {
+    if (!name) return "U";
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .substring(0, 2);
+  };
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-light bg-white">
+    <nav
+      className="navbar navbar-expand-lg navbar-dark border-bottom py-2 shadow-sm"
+      style={{ backgroundColor: "#0b1320", borderColor: "#162234" }}
+    >
       <div className="container-fluid px-4 px-lg-5">
-
-        <a className="navbar-brand">
+        {/* Brand / Logo - Increased Size */}
+        <Link to="/" className="navbar-brand d-flex align-items-center me-4">
           <img
             src={company_logo}
             alt="Freight Optimiser"
             className="logo"
-            onClick={() => navigate('/')}
-            style={{cursor: 'pointer'}}
+            style={{ height: "52px", objectFit: "contain" }} // Increased from 40px
           />
-        </a>
+        </Link>
 
+        {/* Mobile Toggle Button */}
         <button
-          className="navbar-toggler"
+          className="navbar-toggler border-0 shadow-none"
           type="button"
           data-bs-toggle="collapse"
           data-bs-target="#navbarContent"
@@ -36,85 +67,113 @@ const Navbar = () => {
           <span className="navbar-toggler-icon"></span>
         </button>
 
-        <div
-          className="collapse navbar-collapse"
-          id="navbarContent"
-        >
-
-          <ul className="navbar-nav mx-auto mb-2 mb-lg-0 gap-lg-2">
-
+        {/* Collapsible Wrapper */}
+        <div className="collapse navbar-collapse" id="navbarContent">
+          {/* Centered Navigation Links */}
+          <ul className="navbar-nav mx-auto mb-3 mb-lg-0 gap-lg-3 align-items-lg-center">
             <li className="nav-item">
-              <a className="nav-link" onClick={() => navigate('/')} style={{cursor: "pointer"}}>
+              <NavLink to="/" className="nav-link text-white-50">
                 Home
-              </a>
+              </NavLink>
             </li>
 
-            <li className="nav-item dropdown">
-              <a
-                className="nav-link dropdown-toggle"
-                href="#"
-                role="button"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-              >
-                Services
-              </a>
-
-              <ul className="dropdown-menu border-0 shadow">
-
-                <li>
-                  <a className="dropdown-item" href="#">
-                    Route Optimisation
-                  </a>
-                </li>
-
-                <li>
-                  <a className="dropdown-item" href="#">
-                    Container Tracking
-                  </a>
-                </li>
-
-                <li>
-                  <a className="dropdown-item" href="#">
-                    Freight Analytics
-                  </a>
-                </li>
-
-              </ul>
-            </li>
-
-            {isHomePage && ( 
+            {isHomePage && (
               <li className="nav-item">
-                <a className="nav-link" href="#features">
+                <a className="nav-link text-white-50" href="#features">
                   Features
                 </a>
               </li>
             )}
 
             <li className="nav-item">
-              <a className="nav-link" href="/about">
+              <NavLink to="/about" className="nav-link text-white-50">
                 About
-              </a>
+              </NavLink>
             </li>
-
           </ul>
 
-          {/* Right Side */}
-          <div className="navbar-actions">
-            
-            {isLoginPage ? (
-              <p></p>
+          {/* Right Action Area (Dropdown / Login) */}
+          <div className="d-flex flex-column flex-lg-row align-items-lg-center pt-3 pt-lg-0 border-top border-lg-0 border-secondary-subtle">
+            {isLoggedIn ? (
+              <div className="nav-item dropdown">
+                {/* Dropdown Trigger */}
+                <button
+                  className="btn btn-link text-decoration-none dropdown-toggle d-flex align-items-center gap-2 p-0 shadow-none"
+                  id="userDropdown"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                >
+                  {/* Avatar Circle */}
+                  <div
+                    className="d-flex align-items-center justify-content-center rounded-circle text-white fw-bold"
+                    style={{
+                      width: "38px",
+                      height: "38px",
+                      backgroundColor: "#1e88e5",
+                    }}
+                  >
+                    {getInitials(user?.fullName)}
+                  </div>
+                  {/* Visible Name on Desktop */}
+                  <div className="d-none d-lg-block text-start">
+                    <div
+                      className="text-white fw-semibold lh-sm"
+                      style={{ fontSize: "14px" }}
+                    >
+                      {user?.fullName || "User Account"}
+                    </div>
+                  </div>
+                </button>
+
+                {/* Dropdown Menu (Dark theme) */}
+                <ul
+                  className="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow mt-3 border-1"
+                  style={{ backgroundColor: "#162234", borderColor: "#1e2d42", minWidth: "220px" }}
+                >
+                  {/* Organization Info Header */}
+                  <li className="px-3 py-2">
+                    <span className="d-block text-white fw-semibold" style={{ fontSize: "14px" }}>
+                      {user?.fullName || "User Account"}
+                    </span>
+                    <span className="d-block text-white-50 mt-1 d-flex align-items-center gap-2" style={{ fontSize: "12px" }}>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M14.763.075A.5.5 0 0 1 15 .5v15a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5V14h-1v1.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V10a.5.5 0 0 1 .342-.474L6 7.64V4.5a.5.5 0 0 1 .276-.447l8-4a.5.5 0 0 1 .487.022M6 8.694 1 10.36V15h5zM7 15h2v-1.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 .5.5V15h2V1.309l-7 3.5z"/>
+                        <path d="M2 11h1v1H2zm2 0h1v1H4zm-2 2h1v1H2zm2 0h1v1H4zm4-4h1v1H8zm2 0h1v1h-1zm-2 2h1v1H8zm2 0h1v1h-1zm2-2h1v1h-1zm0 2h1v1h-1zM8 7h1v1H8zm2 0h1v1h-1zm2 0h1v1h-1zM8 5h1v1H8zm2 0h1v1h-1zm2 0h1v1h-1z"/>
+                      </svg>
+                      {user?.organization || "No Organization"}
+                    </span>
+                  </li>
+                  
+                  <li><hr className="dropdown-divider border-secondary" /></li>
+                  
+                  {/* Logout Button */}
+                  <li>
+                    <button
+                      onClick={handleLogout}
+                      className="dropdown-item text-danger d-flex align-items-center gap-2 py-2"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path fillRule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0z"/>
+                        <path fillRule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
+                      </svg>
+                      Sign Out
+                    </button>
+                  </li>
+                </ul>
+              </div>
             ) : (
-                <a href="/login" className="login-link">
-                  Login
-                  <span className="ms-2">→</span>
-                </a>
+              !isLoginPage && (
+                <Link
+                  to="/login"
+                  className="btn btn-sm px-4 py-2 fw-semibold rounded-3 text-white text-decoration-none w-100 w-lg-auto ms-lg-2 shadow-sm"
+                  style={{ backgroundColor: "#1e88e5", border: "none" }}
+                >
+                  Login →
+                </Link>
+              )
             )}
-
           </div>
-
         </div>
-
       </div>
     </nav>
   );

@@ -1,11 +1,11 @@
 .navbar {
     min-height: 78px;
-    border-bottom: 1px solid #eeeeee;
+    background-color: #0b1320;
+    border-bottom: 1px solid #162234;
     position: sticky;
     top: 0;
     z-index: 1000;
 }
-
 
 .logo {
     height: 58px;
@@ -14,9 +14,8 @@
     border-radius: 8px;
 }
 
-
 .navbar-nav .nav-link {
-    color: #444;
+    color: #8492a6;
     font-weight: 500;
     padding: 10px 16px !important;
     border-radius: 8px;
@@ -24,36 +23,40 @@
 }
 
 .navbar-nav .nav-link:hover {
-    color: #b88600;
-    background-color: #fff8dc;
+    color: #38bdf8;
+    background-color: rgba(56, 189, 248, 0.08);
 }
 
 .navbar-nav .nav-link.active {
-    color: #b88600;
+    color: #ffffff;
     font-weight: 600;
-    background-color: #fff8dc;
+    background-color: #1e88e5;
 }
 
-
-
+/* Dropdown Styles */
 .dropdown-menu {
     margin-top: 10px !important;
     padding: 8px;
-    border-radius: 10px;
+    border-radius: 12px;
+    background-color: #070d18;
+    border: 1px solid #162234;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
 }
 
 .dropdown-item {
     padding: 10px 14px;
     border-radius: 7px;
     font-size: 14px;
+    color: #8492a6;
+    transition: all 0.2s ease;
 }
 
 .dropdown-item:hover {
-    background-color: #fff8dc;
-    color: #b88600;
+    background-color: rgba(56, 189, 248, 0.1);
+    color: #38bdf8;
 }
 
-
+/* Actions & Buttons */
 .navbar-actions {
     display: flex;
     align-items: center;
@@ -62,18 +65,18 @@
 
 .login-link {
     text-decoration: none;
-    color: #333;
+    color: #8492a6;
     font-weight: 500;
+    transition: color 0.2s ease;
 }
 
 .login-link:hover {
-    color: #b88600;
+    color: #38bdf8;
 }
 
-
 .optimise-btn {
-    background-color: #e0a800;
-    color: white;
+    background-color: #1e88e5;
+    color: #ffffff;
     padding: 10px 18px;
     border-radius: 8px;
     font-weight: 600;
@@ -82,15 +85,13 @@
 }
 
 .optimise-btn:hover {
-    background-color: #c89500;
-    color: white;
+    background-color: #1565c0;
+    color: #ffffff;
     transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(30, 136, 229, 0.3);
 }
 
-
-
 @media (max-width: 991px) {
-
     .navbar-actions {
         margin-top: 15px;
         padding-bottom: 15px;
@@ -109,3 +110,4 @@
         width: 105px;
     }
 }
+
