@@ -18,7 +18,7 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const res = await fetch("http://localhost:7000/api/auth/login", {
+      const res = await fetch("https://multimodal-freight-container-delivery.onrender.com/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -754,7 +754,7 @@ const ForecastResults = () => {
       setLoadingAnalysis(true);
       setAnalysisError(null);
       try {
-        const res = await fetch("http://localhost:7000/api/forecast", {
+        const res = await fetch("https://multimodal-freight-container-delivery.onrender.com/api/forecast", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
