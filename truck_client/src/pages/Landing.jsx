@@ -3,7 +3,19 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 
 const Home = () => {
+  const handleLandingPageForecast = () => {
+  const user = localStorage.getItem("token");
+
+  if (!user) {
+    alert("Kindly login to start");
+    return;
+  }
+
+  navigate("/forecast_query");
+};
+
   const navigate = useNavigate();
+
 
   return (
     <main
@@ -39,10 +51,11 @@ const Home = () => {
               </p>
 
               <div className="d-flex gap-3 mt-4">
+                {handleLandingPageForecast }
                 <button
                   className="btn btn-lg px-4 fw-bold text-white rounded-3"
                   style={{ backgroundColor: "#1e88e5" }}
-                  onClick={() => navigate("/forecast_query")}
+                  onClick={handleLandingPageForecast}
                 >
                   Start Forecast →
                 </button>
