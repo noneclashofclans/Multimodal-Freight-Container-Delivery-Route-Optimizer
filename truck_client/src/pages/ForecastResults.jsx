@@ -4,6 +4,8 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import Navbar from "../components/Navbar";
 import RouteMap from "../components/RouteMap";
+import Minimap from "../components/Minimap";
+import { useTheme } from "../../context/ThemeContext";
 import { ports, vesselTypes } from "../data/Ports";
 // Reuse the same vessel images used on the query page
 import handysizeImg from "../assets/screenshot-2026-08-26_18-06-21.png";
@@ -97,19 +99,7 @@ function evaluatePortsForVessel(spec) {
     };
   });
 }
-// ---------------------------------------------------------------------------
-// CHART GEOMETRY — shared by the interactive in-page chart and the static
-// SVG string embedded in the downloadable report, so both stay in sync.
-//
-// NOTE: field-name detection is defensive since the exact shape of
-// analysis.rateData depends on the /api/forecast backend response. It looks
-// for common variants (date/month/period/label, rate/value/price) and
-// flags a point as "forecast" via isForecast / type. If your backend uses
-// different field names, adjust getPointValue / getPointLabel / isForecastPoint.
-// ---------------------------------------------------------------------------
-// Candidate field names for the numeric rate, in priority order. The backend
-// contract for analysis.rateData isn't fixed on our end, so we try every
-// common spelling rather than guessing one and silently rendering $0.
+
 const RATE_VALUE_KEYS = [
   "rate",
   "value",
@@ -592,6 +582,46 @@ const Spinner = ({ size = 40 }) => (
 const DashboardStyles = () => (
   <style>{`
     .dashboard-shell { position: relative; }
+    /* Freight Market Snapshot styles */
+    .route-snapshot { background-color: #071022; border: 1px solid #162234; padding: 18px; }
+    .route-snapshot-heading { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px; }
+    .route-snapshot-heading .eyebrow { color:#94a3b8; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.06em; }
+    .route-snapshot-heading h3 { margin:0; color:#e6eef6; font-size:1.05rem; font-weight:700; }
+    .status-pill { font-weight:700; color:#0f172a; background:#c7f9ef; padding:6px 10px; border-radius:999px; font-size:0.78rem; display:inline-flex; align-items:center; gap:8px; }
+    .status-pill.status-error { background:#fee2e2; color:#7f1d1d; }
+    .status-pill.status-loading { background:#f1f5f9; color:#334155; }
+
+    .route-snapshot-grid { display:grid; grid-template-columns: 1fr 340px; gap:18px; align-items:start; }
+    .route-facts { color:#cbd5e1; display:flex; flex-direction:column; gap:14px; }
+    .route-line { display:flex; align-items:center; gap:12px; background:#061222; border:1px solid #0f1724; padding:12px; border-radius:10px; }
+    .route-dot { width:12px; height:12px; border-radius:50%; display:inline-block; flex-shrink:0; }
+    .sage-dot { background:#34d399; }
+    .coral-dot { background:#fb7185; }
+    .route-line div { min-width:0; }
+    .route-line small { display:block; color:#94a3b8; font-size:0.72rem; }
+    .route-line strong { color:#e6eef6; display:block; font-size:0.9rem; }
+    .route-vessel { margin-left:auto; color:#38bdf8; font-weight:700; }
+    .route-kpis { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+    .route-kpis > div small { color:#94a3b8; display:block; font-size:0.72rem; }
+    .route-kpis > div strong { color:#e6eef6; }
+    .route-map-panel { border-radius:10px; overflow:hidden; border:1px solid #162234; height:220px; background:#061223; }
+    /* Light-mode snapshot overrides */
+    .route-snapshot.light { background-color: #ffffff; border: 1px solid #e6eef6; }
+    .route-snapshot.light .route-snapshot-heading .eyebrow { color:#64748b; }
+    .route-snapshot.light .route-snapshot-heading h3 { color:#0f172a; }
+    .route-snapshot.light .route-facts { color:#475569; }
+    .route-snapshot.light .route-line { background:#f8fafc; border-color:#e6eef6; }
+    .route-snapshot.light .route-line small { color:#64748b; }
+    .route-snapshot.light .route-line strong { color:#0f172a; }
+    .route-snapshot.light .route-vessel { color:#0f4c81; }
+    .route-snapshot.light .route-kpis > div small { color:#64748b; }
+    .route-snapshot.light .route-kpis > div strong { color:#0f172a; }
+    .route-snapshot.light .route-map-panel { background: #ffffff; border-color:#e6eef6; }
+    .route-snapshot.light .status-pill { background:#ecfdf5; color:#064e3b; }
+    @media (max-width: 991px) {
+      .route-snapshot-grid { grid-template-columns: 1fr; }
+      .route-map-panel { height:200px; }
+    }
     .dashboard-sidebar {
       width: 264px;
       flex-shrink: 0;
@@ -896,6 +926,21 @@ const ForecastResults = () => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [analysis, distanceInfo, compatiblePorts.length]);
+  // Snapshot-panel status pill + risk severity bucket — kept close to the
+  // JSX that consumes them since they're purely presentational.
+  const snapshotStatus = loadingAnalysis
+    ? { label: "Fetching Market Data", cls: "status-loading" }
+    : analysisError
+    ? { label: "Forecast Unavailable", cls: "status-error" }
+    : { label: "Forecast Live", cls: "status-live" };
+  const riskLevel = analysis?.forecast?.riskLevel;
+  const riskSeverity = (() => {
+    const level = (riskLevel || "").toLowerCase();
+    if (level === "low") return "risk-low";
+    if (level === "moderate" || level === "medium") return "risk-medium";
+    if (["high", "severe", "extreme"].includes(level)) return "risk-high";
+    return "";
+  })();
   const specMetrics = [
     { icon: "🚢", title: "Deadweight", value: `${vesselSpecs.maxDWT.toLocaleString()} DWT` },
     { icon: "📏", title: "Maximum LOA", value: `${vesselSpecs.maxLOA} m` },
@@ -984,14 +1029,10 @@ const ForecastResults = () => {
       actionItems,
     };
   }, [vesselSpecs, cargoQuantity, analysis, vesselComparison, compatiblePorts, restrictedPorts, specialPorts, vesselType]);
-  // ---------------------------------------------------------------------
-  // DOWNLOADABLE PDF REPORT — renders a light-theme, print-friendly copy of
-  // the results into an offscreen container, captures it with html2canvas,
-  // and paginates it into a multi-page PDF with jsPDF.
-  //
-  // Requires: npm install jspdf html2canvas
-  // ---------------------------------------------------------------------
+
   const [generatingReport, setGeneratingReport] = useState(false);
+  const [largeMapOpen, setLargeMapOpen] = useState(false);
+  const { theme } = useTheme();
   const imageToBase64 = async (url) => {
     try {
       const res = await fetch(url);
@@ -1216,7 +1257,6 @@ const ForecastResults = () => {
         }}
       >
         <aside className="dashboard-sidebar">
-          <div className="dashboard-brand"><span className="dashboard-brand-mark">B</span><span><strong>Butter Freight</strong><small>Intelligent chartering</small></span></div>
           <nav className="dashboard-nav" aria-label="Dashboard navigation">
             <a className="dashboard-nav-link active" href="#overview">⌂ <span>Overview</span></a>
             <a className="dashboard-nav-link" href="#market-analysis">▦ <span>Market Snapshot</span></a>
@@ -1225,9 +1265,8 @@ const ForecastResults = () => {
             <a className="dashboard-nav-link" href="#vessel-comparison">⇄ <span>Vessel Comparison</span></a>
             <a className="dashboard-nav-link" href="#port-analysis">◇ <span>Ports</span></a>
             <a className="dashboard-nav-link" href="#recommendation">! <span>Recommendation</span></a>
-            <Link className="dashboard-nav-link" to="/price-comparison">▤ <span>Price Comparison</span></Link>
           </nav>
-          <div className="sidebar-note"><strong>AI Co-Pilot</strong><p>Ask anything about routes, markets or vessels.</p><button className="btn" type="button" onClick={() => document.getElementById("recommendation")?.scrollIntoView({ behavior: "smooth" })}>✦ Ask AI</button></div>
+          <div className="sidebar-note"><strong>AI Co-Pilot</strong><p>Ask anything about routes, markets or vessels.</p><Link className="btn" to="/ai-chat" state={{ analysis, marketMetrics, origin, destination, vesselType, compatiblePorts }}>{'✦ Ask AI'}</Link></div>
         </aside>
         {sidebarOpen && <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} />}
         <div className="dashboard-content">
@@ -1240,9 +1279,6 @@ const ForecastResults = () => {
             >
               ☰
             </button>
-            <button className="dashboard-back" type="button" onClick={() => navigate(-1)}>← <span>Back</span></button>
-            <span className="topbar-title">Decision cockpit</span>
-            <div className="topbar-actions"><span>◷ May 26, 2025</span><span className="avatar">SS</span><strong>{JSON.parse(localStorage.getItem("user") || "{}").fullName || "Operator"}</strong></div>
           </header>
           <Navbar />
       {/* HERO SECTION */}
@@ -1250,12 +1286,6 @@ const ForecastResults = () => {
         <div className="container py-4 py-lg-5">
           <div className="row align-items-center g-5">
             <div className="col-lg-7">
-              <span
-                className="badge rounded-pill px-3 py-2 mb-3 fw-semibold"
-                style={{ backgroundColor: "#0b2528", color: "#38bdf8" }}
-              >
-                AI-GENERATED FORECAST RESULTS
-              </span>
               <h1 className="display-4 fw-bold text-white">
                 Freight & Vessel
                 <br />
@@ -1385,11 +1415,103 @@ const ForecastResults = () => {
         </div>
       </section>
 
+      {/* Large map modal (opened by clicking the minimap) */}
+      {largeMapOpen && (
+        <div
+          className="map-modal-backdrop"
+          onClick={() => setLargeMapOpen(false)}
+          style={{ position: "fixed", inset: 0, background: "rgba(3,7,18,0.72)", zIndex: 80, display: "flex", alignItems: "center", justifyContent: "center" }}
+        >
+          <div
+            className="map-modal"
+            onClick={(e) => e.stopPropagation()}
+            style={{ width: "92%", maxWidth: 1100, height: "84%", borderRadius: 12, overflow: "hidden", boxShadow: "0 20px 60px rgba(2,6,23,0.7)" }}
+          >
+            <div style={{ display: "flex", justifyContent: "flex-end", padding: 10, background: "#071022", borderBottom: "1px solid #162234" }}>
+              <button
+                type="button"
+                onClick={() => setLargeMapOpen(false)}
+                style={{ background: "#0b1320", color: "#e2e8f0", border: "1px solid #162234", padding: "6px 10px", borderRadius: 8 }}
+              >
+                Close
+              </button>
+            </div>
+            <div style={{ height: "calc(100% - 46px)", background: "#071022" }}>
+              <RouteMap
+                origin={origin}
+                destination={destination}
+                originLabel={originCoordinates?.label}
+                originCoordinates={originCoordinates}
+                destinationCoordinates={destinationCoordinates}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       <section className="route-snapshot-section py-4">
         <div className="container">
-          <div className="route-snapshot card border-0 rounded-4 p-3">
-            <div className="route-snapshot-heading"><div><small className="eyebrow">FREIGHT MARKET SNAPSHOT</small><h3>{origin} <span>→</span> {destination}</h3></div><span className="status-pill">● Forecast Stable</span></div>
-            <div className="route-snapshot-grid"><div className="route-facts"><div className="route-line"><span className="route-dot sage-dot"></span><div><small>Loading Port</small><strong>{originCoordinates?.label || origin}</strong></div><span className="route-vessel">▣ {vesselType}</span><div className="route-arrow">→</div><span className="route-dot coral-dot"></span><div><small>Discharge Port</small><strong>{destination}, India</strong></div></div><div className="route-kpis"><div><small>Vessel Type</small><strong>{vesselType}</strong></div><div><small>Cargo</small><strong>{Number(cargoQuantity).toLocaleString()} MT</strong></div><div><small>Laycan Window</small><strong>{forecastPeriod}</strong></div><div><small>Risk Level</small><strong>{analysis?.forecast?.riskLevel || "Pending"}</strong></div></div></div><div className="route-map-panel"><RouteMap origin={origin} destination={destination} originLabel={originCoordinates?.label} originCoordinates={originCoordinates} destinationCoordinates={destinationCoordinates} /></div></div>
+          <div className={`route-snapshot card border-0 rounded-4 p-3 ${theme === "light" ? "light" : ""}`}>
+            <div className="route-snapshot-heading">
+              <div>
+                <small className="eyebrow">FREIGHT MARKET SNAPSHOT</small>
+                <h3>
+                  {origin} <span style={{ color: "#38bdf8", margin: "0 8px" }}>→</span> {destination}
+                </h3>
+              </div>
+              <span className={`status-pill ${snapshotStatus.cls === "status-error" ? "status-error" : snapshotStatus.cls === "status-loading" ? "status-loading" : ""}`}>
+                {snapshotStatus.label}
+              </span>
+            </div>
+
+            <div className="route-snapshot-grid">
+              <div className="route-facts">
+                <div className="route-line">
+                  <span className="route-dot sage-dot" />
+                  <div>
+                    <small>Loading Port</small>
+                    <strong>{originCoordinates?.label || origin}</strong>
+                  </div>
+                  <div className="route-vessel">▣ {vesselType}</div>
+                  <div className="route-arrow">→</div>
+                  <span className="route-dot coral-dot" />
+                  <div>
+                    <small>Discharge Port</small>
+                    <strong>{destination}</strong>
+                  </div>
+                </div>
+
+                <div className="route-kpis">
+                  <div>
+                    <small>Vessel Type</small>
+                    <strong>{vesselType}</strong>
+                  </div>
+                  <div>
+                    <small>Cargo</small>
+                    <strong>{Number(cargoQuantity).toLocaleString()} MT</strong>
+                  </div>
+                  <div>
+                    <small>Laycan Window</small>
+                    <strong>{forecastPeriod}</strong>
+                  </div>
+                  <div>
+                    <small>Risk Level</small>
+                    <strong>{analysis?.forecast?.riskLevel || "Pending"}</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div className="route-map-panel">
+                <Minimap
+                  originCoordinates={originCoordinates}
+                  destinationCoordinates={destinationCoordinates}
+                  originLabel={originCoordinates?.label}
+                  destinationLabel={destination}
+                  onOpenLargeMap={() => setLargeMapOpen(true)}
+                  theme={theme}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </section>

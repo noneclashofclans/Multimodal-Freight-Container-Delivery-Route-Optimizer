@@ -7,6 +7,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import ForecastQuery from './pages/ForecastQuery'
 import ForecastResults from './pages/ForecastResults'
+import AIChat from './pages/AIChat'
 
 const App = () => {
   return (
@@ -17,6 +18,7 @@ const App = () => {
       <Route path='/register' element={<Register></Register>}></Route>
       <Route path='/forecast_query' element={<ForecastQuery />}></Route>
       <Route path='/forecast_results' element={<ForecastResults />}></Route>\
+      <Route path='/ai-chat' element={<AIChat />}></Route>
     </Routes>
   )
 }

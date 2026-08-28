@@ -107,3 +107,27 @@ IMPORTANT:
     throw error;
   }
 };
+
+export const generateChat = async ({ analysis = null, question = "" }) => {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error("GEMINI_API_KEY is not defined in environment variables.");
+  }
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+  const contextSnippet = analysis
+    ? `Context:\n${JSON.stringify(analysis).slice(0, 2000)}\n---\n`
+    : "";
+
+  const prompt = `You are an expert maritime freight procurement analyst. Answer the user's question concisely and refer to the provided context when helpful. Do not invent live pricing or claim access to external services.\n\n${contextSnippet}\nUser question: ${question}\n\nAnswer:`;
+
+  try {
+    const result = await model.generateContent(prompt);
+    // result.response.text() may be a function that returns the final text.
+    return result.response.text();
+  } catch (error) {
+    console.error("Error generating chat response in geminiService:", error);
+    throw error;
+  }
+};
