@@ -1,23 +1,21 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import Navbar from "../components/Navbar";
+import RouteMap from "../components/RouteMap";
 import { ports, vesselTypes } from "../data/Ports";
-
 // Reuse the same vessel images used on the query page
 import handysizeImg from "../assets/screenshot-2026-08-26_18-06-21.png";
 import supramaxImg from "../assets/screenshot-2026-08-26_18-13-33.png";
 import panamaxImg from "../assets/screenshot-2026-08-26_18-14-46.png";
 import capesizeImg from "../assets/screenshot-2026-08-26_18-21-30.png";
-
 const vesselImages = {
   Handysize: handysizeImg,
   Supramax: supramaxImg,
   Panamax: panamaxImg,
   Capesize: capesizeImg,
 };
-
 // Approximate representative export-hub coordinates per origin country
 // (adjust these to the actual load ports you care about)
 const ORIGIN_COORDINATES = {
@@ -27,7 +25,6 @@ const ORIGIN_COORDINATES = {
   Russia: { lat: 43.1056, lng: 131.8735, label: "Vladivostok, Russia" },
   Indonesia: { lat: -3.3194, lng: 114.5908, label: "Banjarmasin, Indonesia" },
 };
-
 // Coordinates for the East Coast India ports, keyed by port.id from Ports.jsx
 const PORT_COORDINATES = {
   paradip: { lat: 20.2648, lng: 86.6947 },
@@ -38,26 +35,20 @@ const PORT_COORDINATES = {
   vizag: { lat: 17.6868, lng: 83.2185 },
   "sagar-sandheads": { lat: 21.65, lng: 88.05 },
 };
-
 // Haversine great-circle distance in nautical miles + km
 function haversineDistance(lat1, lng1, lat2, lng2) {
   const R_KM = 6371;
   const toRad = (deg) => (deg * Math.PI) / 180;
-
   const dLat = toRad(lat2 - lat1);
   const dLng = toRad(lng2 - lng1);
-
   const a =
     Math.sin(dLat / 2) ** 2 +
     Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
-
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const km = R_KM * c;
   const nauticalMiles = km * 0.539957;
-
   return { km, nauticalMiles };
 }
-
 // Helper to find a destination port entry by name (matches the "name" or "id" field)
 function findPortByDestination(destinationName) {
   if (!destinationName) return null;
@@ -70,7 +61,6 @@ function findPortByDestination(destinationName) {
     ) || null
   );
 }
-
 // ---------------------------------------------------------------------------
 // PORT COMPATIBILITY ENGINE — extracted so it can be run per-vessel-type,
 // not just for the vessel the user selected on the query page.
@@ -78,7 +68,6 @@ function findPortByDestination(destinationName) {
 function evaluatePortsForVessel(spec) {
   return ports.map((port) => {
     const restrictions = [];
-
     if (port.maxDraft !== null && spec.maxDraft > port.maxDraft) {
       restrictions.push(`Draft (${spec.maxDraft}m) exceeds ${port.maxDraft}m limit`);
     }
@@ -91,7 +80,6 @@ function evaluatePortsForVessel(spec) {
     if (port.maxDWT !== null && spec.maxDWT > port.maxDWT) {
       restrictions.push(`DWT exceeds ${port.maxDWT.toLocaleString()} tons limit`);
     }
-
     if (port.id === "sagar-sandheads") {
       return {
         ...port,
@@ -102,7 +90,6 @@ function evaluatePortsForVessel(spec) {
         ],
       };
     }
-
     return {
       ...port,
       status: restrictions.length === 0 ? "compatible" : "restricted",
@@ -110,7 +97,6 @@ function evaluatePortsForVessel(spec) {
     };
   });
 }
-
 // ---------------------------------------------------------------------------
 // CHART GEOMETRY — shared by the interactive in-page chart and the static
 // SVG string embedded in the downloadable report, so both stay in sync.
@@ -143,13 +129,10 @@ const RATE_VALUE_KEYS = [
   "close",
   "y",
 ];
-
 const RATE_LABEL_KEYS = ["date", "month", "period", "label", "day", "week", "timestamp", "x"];
-
 function getPointValue(d) {
   if (typeof d === "number") return d;
   if (!d || typeof d !== "object") return 0;
-
   for (const key of RATE_VALUE_KEYS) {
     const raw = d[key];
     if (raw === undefined || raw === null || raw === "") continue;
@@ -159,7 +142,6 @@ function getPointValue(d) {
   }
   return 0;
 }
-
 function getPointLabel(d, i) {
   if (!d || typeof d !== "object") return `Pt ${i + 1}`;
   for (const key of RATE_LABEL_KEYS) {
@@ -167,7 +149,6 @@ function getPointLabel(d, i) {
   }
   return `Pt ${i + 1}`;
 }
-
 function isForecastPoint(d) {
   if (!d || typeof d !== "object") return false;
   if (typeof d.isForecast === "boolean") return d.isForecast;
@@ -179,7 +160,6 @@ function isForecastPoint(d) {
   }
   return false;
 }
-
 // If every point resolved to 0, the backend's field names don't match any of
 // the candidates above — warn loudly in the console with the actual keys so
 // this is a five-second fix instead of a mystery.
@@ -197,10 +177,8 @@ function warnIfAllZero(rawData, points) {
     );
   }
 }
-
 function buildChartGeometry(rawData, opts = {}) {
   if (!rawData || rawData.length === 0) return null;
-
   const {
     width = 900,
     height = 360,
@@ -209,16 +187,13 @@ function buildChartGeometry(rawData, opts = {}) {
     paddingTop = 30,
     paddingBottom = 46,
   } = opts;
-
   const points = rawData.map((d, i) => ({
     index: i,
     label: getPointLabel(d, i),
     value: getPointValue(d),
     forecast: isForecastPoint(d),
   }));
-
   warnIfAllZero(rawData, points);
-
   const values = points.map((p) => p.value);
   const minVal = Math.min(...values);
   const maxVal = Math.max(...values);
@@ -227,11 +202,9 @@ function buildChartGeometry(rawData, opts = {}) {
   const yPad = range * 0.18;
   const yMin = Math.max(0, minVal - yPad);
   const yMax = maxVal + yPad;
-
   const plotWidth = width - paddingLeft - paddingRight;
   const plotHeight = height - paddingTop - paddingBottom;
   const xStep = points.length > 1 ? plotWidth / (points.length - 1) : 0;
-
   const coords = points.map((p, i) => ({
     ...p,
     x: paddingLeft + i * xStep,
@@ -240,17 +213,13 @@ function buildChartGeometry(rawData, opts = {}) {
       plotHeight -
       ((p.value - yMin) / (yMax - yMin || 1)) * plotHeight,
   }));
-
   const firstForecastIndex = coords.findIndex((p) => p.forecast);
   const hasForecastSplit = firstForecastIndex > 0;
   const splitIndex = hasForecastSplit ? firstForecastIndex : coords.length - 1;
-
   const historicalCoords = hasForecastSplit ? coords.slice(0, splitIndex + 1) : coords;
   const forecastCoords = hasForecastSplit ? coords.slice(splitIndex) : [];
-
   const toPath = (arr) =>
     arr.map((c, i) => `${i === 0 ? "M" : "L"} ${c.x.toFixed(2)} ${c.y.toFixed(2)}`).join(" ");
-
   const toAreaPath = (arr) => {
     if (arr.length === 0) return "";
     const base = paddingTop + plotHeight;
@@ -260,26 +229,21 @@ function buildChartGeometry(rawData, opts = {}) {
       ` L ${arr[arr.length - 1].x.toFixed(2)} ${base.toFixed(2)} Z`
     );
   };
-
   const yTickCount = 5;
   const yTicks = Array.from({ length: yTickCount + 1 }, (_, i) => {
     const value = yMin + ((yMax - yMin) * i) / yTickCount;
     return { value, y: paddingTop + plotHeight - (i / yTickCount) * plotHeight };
   });
-
   const xTickEvery = Math.max(1, Math.ceil(coords.length / 8));
   const xTicks = coords.filter((_, i) => i % xTickEvery === 0 || i === coords.length - 1);
-
   const minPoint = coords.reduce((a, b) => (b.value < a.value ? b : a), coords[0]);
   const maxPoint = coords.reduce((a, b) => (b.value > a.value ? b : a), coords[0]);
   const changePct =
     coords.length > 1 && coords[0].value !== 0
       ? ((coords[coords.length - 1].value - coords[0].value) / coords[0].value) * 100
       : 0;
-
   const variance = values.reduce((sum, v) => sum + (v - avgVal) ** 2, 0) / values.length;
   const stdDev = Math.sqrt(variance);
-
   return {
     width,
     height,
@@ -309,7 +273,6 @@ function buildChartGeometry(rawData, opts = {}) {
     hasForecastSplit,
   };
 }
-
 // Static (non-interactive) SVG markup string — used inside the downloadable
 // HTML report, where React event handlers won't run.
 function renderStaticChartSVG(g) {
@@ -330,7 +293,6 @@ function renderStaticChartSVG(g) {
     coords,
     splitIndex,
   } = g;
-
   const yTickSvg = yTicks
     .map(
       (t) =>
@@ -342,7 +304,6 @@ function renderStaticChartSVG(g) {
         )}" text-anchor="end" font-size="11" fill="#64748b">$${t.value.toFixed(0)}</text>`
     )
     .join("");
-
   const xTickSvg = xTicks
     .map(
       (c) =>
@@ -351,7 +312,6 @@ function renderStaticChartSVG(g) {
         )}" text-anchor="middle" font-size="10" fill="#64748b">${c.label}</text>`
     )
     .join("");
-
   const splitSvg = hasForecastSplit
     ? `<line x1="${coords[splitIndex].x.toFixed(2)}" x2="${coords[splitIndex].x.toFixed(
         2
@@ -362,7 +322,6 @@ function renderStaticChartSVG(g) {
         2
       )}" y="${(paddingTop + 14).toFixed(2)}" font-size="10" fill="#94a3b8">Today</text>`
     : "";
-
   const dotsSvg = coords
     .map(
       (c) =>
@@ -371,7 +330,6 @@ function renderStaticChartSVG(g) {
         }" stroke="#070d18" stroke-width="1" />`
     )
     .join("");
-
   return `<svg viewBox="0 0 ${width} ${height}" style="width:100%;height:auto;display:block;">
     <defs>
       <linearGradient id="histFillStatic" x1="0" y1="0" x2="0" y2="1">
@@ -388,11 +346,10 @@ function renderStaticChartSVG(g) {
     ${dotsSvg}
   </svg>`;
 }
-
 // Small stat pill used above the chart and in the market scenario grid
 const StatPill = ({ label, value, color }) => (
   <div
-    className="rounded-3 px-3 py-2"
+    className="stat-pill rounded-3 px-3 py-2"
     style={{ backgroundColor: "#070d18", border: "1px solid #162234" }}
   >
     <div style={{ color: "#64748b", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.04em" }}>
@@ -403,7 +360,6 @@ const StatPill = ({ label, value, color }) => (
     </div>
   </div>
 );
-
 // ---------------------------------------------------------------------------
 // ENHANCED RATE CHART — interactive, with historical vs. forecast styling,
 // gridlines, a "Today" split marker, hover tooltip, and summary stat pills.
@@ -411,7 +367,6 @@ const StatPill = ({ label, value, color }) => (
 const EnhancedRateChart = ({ data }) => {
   const [hoverIndex, setHoverIndex] = useState(null);
   const geometry = useMemo(() => buildChartGeometry(data), [data]);
-
   if (!geometry) {
     return (
       <p className="text-center mb-0" style={{ color: "#8492a6" }}>
@@ -419,7 +374,6 @@ const EnhancedRateChart = ({ data }) => {
       </p>
     );
   }
-
   const {
     width,
     height,
@@ -442,7 +396,6 @@ const EnhancedRateChart = ({ data }) => {
     paddingRight,
     plotHeight,
   } = geometry;
-
   const handleMove = (e) => {
     const svg = e.currentTarget;
     const rect = svg.getBoundingClientRect();
@@ -460,10 +413,8 @@ const EnhancedRateChart = ({ data }) => {
     });
     setHoverIndex(nearest);
   };
-
   const hovered = hoverIndex !== null ? coords[hoverIndex] : null;
   const allZero = coords.every((c) => c.value === 0);
-
   return (
     <div>
       {allZero && (
@@ -475,7 +426,6 @@ const EnhancedRateChart = ({ data }) => {
           this chart expects. Check the browser console for the actual field names on the first data point.
         </div>
       )}
-
       <div className="d-flex flex-wrap gap-3 mb-4">
         <StatPill label="Period Low" value={`$${minPoint.value.toFixed(2)}`} color="#f87171" />
         <StatPill label="Period High" value={`$${maxPoint.value.toFixed(2)}`} color="#34d399" />
@@ -487,7 +437,6 @@ const EnhancedRateChart = ({ data }) => {
           color={changePct >= 0 ? "#34d399" : "#f87171"}
         />
       </div>
-
       <svg
         viewBox={`0 0 ${width} ${height}`}
         style={{ width: "100%", height: "auto", display: "block", cursor: "crosshair" }}
@@ -504,7 +453,6 @@ const EnhancedRateChart = ({ data }) => {
             <stop offset="100%" stopColor="#a78bfa" stopOpacity="0" />
           </linearGradient>
         </defs>
-
         {yTicks.map((t, i) => (
           <g key={`y-${i}`}>
             <line
@@ -520,13 +468,11 @@ const EnhancedRateChart = ({ data }) => {
             </text>
           </g>
         ))}
-
         {xTicks.map((c, i) => (
           <text key={`x-${i}`} x={c.x} y={height - 15} textAnchor="middle" fontSize="10" fill="#64748b">
             {c.label}
           </text>
         ))}
-
         {hasForecastSplit && (
           <>
             <line
@@ -543,15 +489,12 @@ const EnhancedRateChart = ({ data }) => {
             </text>
           </>
         )}
-
         <path d={areaHistorical} fill="url(#histFill)" />
         {pathForecast && <path d={areaForecast} fill="url(#fcFill)" />}
-
         <path d={pathHistorical} fill="none" stroke="#38bdf8" strokeWidth="2.5" />
         {pathForecast && (
           <path d={pathForecast} fill="none" stroke="#a78bfa" strokeWidth="2.5" strokeDasharray="6 4" />
         )}
-
         {coords.map((c, i) => (
           <circle
             key={`pt-${i}`}
@@ -563,7 +506,6 @@ const EnhancedRateChart = ({ data }) => {
             strokeWidth="1"
           />
         ))}
-
         {hovered && (
           <line
             x1={hovered.x}
@@ -576,7 +518,6 @@ const EnhancedRateChart = ({ data }) => {
           />
         )}
       </svg>
-
       {hovered && (
         <div
           className="d-inline-block rounded-3 px-3 py-2 mt-2"
@@ -588,7 +529,6 @@ const EnhancedRateChart = ({ data }) => {
           <div className="fw-bold text-white">${hovered.value.toFixed(2)}/tonne</div>
         </div>
       )}
-
       <div className="d-flex flex-wrap gap-4 mt-3 small" style={{ color: "#8492a6" }}>
         <span>
           <span
@@ -623,7 +563,6 @@ const EnhancedRateChart = ({ data }) => {
     </div>
   );
 };
-
 // Simple inline spinner — no external library needed
 const Spinner = ({ size = 40 }) => (
   <>
@@ -645,13 +584,169 @@ const Spinner = ({ size = 40 }) => (
     `}</style>
   </>
 );
-
+// ---------------------------------------------------------------------------
+// DASHBOARD SIDEBAR STYLES — self-contained, matching this page's dark navy
+// theme (#070d18 / #0b1320 / #162234 / #38bdf8) so it drops in without a
+// separate stylesheet.
+// ---------------------------------------------------------------------------
+const DashboardStyles = () => (
+  <style>{`
+    .dashboard-shell { position: relative; }
+    .dashboard-sidebar {
+      width: 264px;
+      flex-shrink: 0;
+      background-color: #0b1320;
+      border-right: 1px solid #162234;
+      display: flex;
+      flex-direction: column;
+      padding: 1.75rem 1.25rem;
+      position: sticky;
+      top: 0;
+      align-self: flex-start;
+      height: 100vh;
+      overflow-y: auto;
+      z-index: 40;
+    }
+    .dashboard-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+      color: #e2e8f0;
+    }
+    .dashboard-brand-mark {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #1e88e5, #38bdf8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #070d18;
+      flex-shrink: 0;
+    }
+    .dashboard-brand strong { display: block; font-size: 0.95rem; color: #fff; line-height: 1.2; }
+    .dashboard-brand small { display: block; color: #64748b; font-size: 0.72rem; margin-top: 2px; }
+    .dashboard-nav { display: flex; flex-direction: column; gap: 0.25rem; margin-bottom: 1.5rem; }
+    .dashboard-nav-link {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.6rem 0.75rem;
+      border-radius: 10px;
+      color: #8492a6;
+      text-decoration: none;
+      font-size: 0.86rem;
+      font-weight: 500;
+      border: 1px solid transparent;
+      transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    }
+    .dashboard-nav-link:hover { color: #e2e8f0; background-color: #070d18; }
+    .dashboard-nav-link.active {
+      color: #38bdf8;
+      background-color: rgba(56, 189, 248, 0.08);
+      border-color: rgba(56, 189, 248, 0.25);
+    }
+    .sidebar-note {
+      margin-top: auto;
+      padding: 1rem;
+      border-radius: 12px;
+      background-color: #070d18;
+      border: 1px solid #162234;
+    }
+    .sidebar-note strong { display: block; color: #fff; font-size: 0.85rem; margin-bottom: 0.35rem; }
+    .sidebar-note p { color: #64748b; font-size: 0.78rem; margin-bottom: 0.75rem; line-height: 1.5; }
+    .sidebar-note .btn {
+      width: 100%;
+      background-color: #1e88e5;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 0.5rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+    .sidebar-note .btn:disabled { opacity: 0.65; }
+    .dashboard-content { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .dashboard-topbar {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.85rem 1.5rem;
+      background-color: #0b1320;
+      border-bottom: 1px solid #162234;
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+    .sidebar-toggle {
+      display: none;
+      background: transparent;
+      border: 1px solid #162234;
+      color: #e2e8f0;
+      border-radius: 8px;
+      width: 36px;
+      height: 36px;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .dashboard-back {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: transparent;
+      border: 1px solid #162234;
+      color: #8492a6;
+      border-radius: 8px;
+      padding: 0.4rem 0.85rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    .dashboard-back:hover { color: #e2e8f0; border-color: #38bdf8; }
+    .topbar-title { color: #e2e8f0; font-weight: 700; font-size: 0.92rem; white-space: nowrap; }
+    .topbar-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #38bdf8;
+      font-size: 0.82rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .sidebar-backdrop { display: none; }
+    @media (max-width: 991px) {
+      .dashboard-sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+        box-shadow: 8px 0 24px rgba(0, 0, 0, 0.4);
+      }
+      .dashboard-shell.sidebar-open .dashboard-sidebar { transform: translateX(0); }
+      .sidebar-toggle { display: inline-flex; }
+      .dashboard-shell.sidebar-open .sidebar-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(3, 7, 18, 0.6);
+        z-index: 35;
+      }
+    }
+  `}</style>
+);
 const ForecastResults = () => {
   const location = useLocation();
   const navigate = useNavigate();
-
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const query = location.state || {};
-
   const {
     origin = "Australia",
     destination = "Paradip",
@@ -660,7 +755,6 @@ const ForecastResults = () => {
     cargoQuantity = 100000,
     forecastPeriod = "Next 30 Days",
   } = query;
-
   // VESSEL METRICS LOOKUP
   const vesselSpecs = useMemo(() => {
     const found = vesselTypes.find(
@@ -676,16 +770,16 @@ const ForecastResults = () => {
       }
     );
   }, [vesselType]);
-
   const vesselImage = vesselImages[vesselSpecs.type] || vesselImages[vesselType];
-
   // PORT INFRASTRUCTURE COMPATIBILITY — for the selected vessel
   const portResults = useMemo(() => evaluatePortsForVessel(vesselSpecs), [vesselSpecs]);
-
   const compatiblePorts = portResults.filter((p) => p.status === "compatible");
   const restrictedPorts = portResults.filter((p) => p.status === "restricted");
   const specialPorts = portResults.filter((p) => p.status === "special");
-
+  // ROUTE MAP LOOKUP — origin/destination coordinates for the route snapshot map
+  const destinationPort = findPortByDestination(destination);
+  const originCoordinates = ORIGIN_COORDINATES[origin];
+  const destinationCoordinates = destinationPort ? PORT_COORDINATES[destinationPort.id] : null;
   // PORT COMPATIBILITY — for every vessel class, so we can explain each option
   const vesselComparison = useMemo(() => {
     return vesselTypes.map((v) => {
@@ -694,7 +788,6 @@ const ForecastResults = () => {
       const restricted = results.filter((p) => p.status === "restricted");
       const special = results.filter((p) => p.status === "special");
       const standardCount = ports.length - special.length;
-
       let verdict;
       if (compatible.length === standardCount) {
         verdict = `Fully compatible with every standard East Coast berth evaluated — the most flexible option for this route.`;
@@ -705,7 +798,6 @@ const ForecastResults = () => {
           .map((p) => p.name)
           .join(", ")}.`;
       }
-
       return {
         type: v.type,
         spec: v,
@@ -718,38 +810,31 @@ const ForecastResults = () => {
       };
     });
   }, [vesselType]);
-
   // DISTANCE CALCULATION (origin country -> destination port)
   const distanceInfo = useMemo(() => {
     const originCoords = ORIGIN_COORDINATES[origin];
     const destinationPort = findPortByDestination(destination);
     const destCoords = destinationPort ? PORT_COORDINATES[destinationPort.id] : null;
-
     if (!originCoords || !destCoords) return null;
-
     const { km, nauticalMiles } = haversineDistance(
       originCoords.lat,
       originCoords.lng,
       destCoords.lat,
       destCoords.lng
     );
-
     return {
       km: Math.round(km),
       nauticalMiles: Math.round(nauticalMiles),
       originLabel: originCoords.label,
     };
   }, [origin, destination]);
-
   // MARKET / RATE ANALYSIS
   const [analysis, setAnalysis] = useState(null);
   const [loadingAnalysis, setLoadingAnalysis] = useState(true);
   const [analysisError, setAnalysisError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
-
   useEffect(() => {
     let cancelled = false;
-
     const fetchForecast = async () => {
       setLoadingAnalysis(true);
       setAnalysisError(null);
@@ -767,9 +852,7 @@ const ForecastResults = () => {
             restrictedPorts,
           }),
         });
-
         if (!res.ok) throw new Error(`Forecast request failed (${res.status})`);
-
         const data = await res.json();
         if (!cancelled) setAnalysis(data);
       } catch (err) {
@@ -785,16 +868,13 @@ const ForecastResults = () => {
         if (!cancelled) setLoadingAnalysis(false);
       }
     };
-
     fetchForecast();
     return () => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [origin, destination, vesselType, cargoQuantity, forecastPeriod, retryCount]);
-
   const handleRetry = () => setRetryCount((c) => c + 1);
-
   // Derived market-scenario metrics (rate volatility, transit time, risk gauge).
   // These are computed client-side from whatever the backend returns, so the
   // panel stays informative even if /api/forecast doesn't supply every field.
@@ -806,7 +886,6 @@ const ForecastResults = () => {
     const riskScore = riskScoreMap[riskKey] ?? 50;
     const riskColor = riskScore < 35 ? "#34d399" : riskScore < 65 ? "#fbbf24" : "#f87171";
     const utilizationPct = ports.length > 0 ? (compatiblePorts.length / ports.length) * 100 : 0;
-
     return {
       volatility: geom?.stdDev ?? null,
       changePct: geom?.changePct ?? null,
@@ -817,14 +896,12 @@ const ForecastResults = () => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [analysis, distanceInfo, compatiblePorts.length]);
-
   const specMetrics = [
     { icon: "🚢", title: "Deadweight", value: `${vesselSpecs.maxDWT.toLocaleString()} DWT` },
     { icon: "📏", title: "Maximum LOA", value: `${vesselSpecs.maxLOA} m` },
     { icon: "↔️", title: "Maximum Beam", value: `${vesselSpecs.maxBeam} m` },
     { icon: "⚓", title: "Maximum Draft", value: `${vesselSpecs.maxDraft} m` },
   ];
-
   // Detailed chartering recommendation — synthesized client-side from
   // deadweight utilization, market trend, port restrictions, and vessel
   // comparison, so the recommendation stays rich even when the backend's
@@ -832,7 +909,6 @@ const ForecastResults = () => {
   const chartingDetails = useMemo(() => {
     const utilizationPct =
       vesselSpecs.maxDWT > 0 ? (Number(cargoQuantity) / vesselSpecs.maxDWT) * 100 : null;
-
     let utilizationNote = "Deadweight utilization could not be determined for this scenario.";
     if (utilizationPct !== null) {
       if (utilizationPct > 95) {
@@ -849,7 +925,6 @@ const ForecastResults = () => {
         )}% of the vessel's rated deadweight, a normal loading range for this class.`;
       }
     }
-
     const trend = (analysis?.forecast?.marketTrend || "").toLowerCase();
     let timingNote;
     let marketTimingRating;
@@ -866,15 +941,12 @@ const ForecastResults = () => {
         "The rate trend looks broadly stable — port access and vessel fit matter more than timing for this scenario.";
       marketTimingRating = "Neutral";
     }
-
     const betterAlt = vesselComparison.find(
       (v) => !v.isSelected && v.compatible.length > compatiblePorts.length
     );
-
     const standardPortCount = ports.length - specialPorts.length;
     const vesselFitRating =
       compatiblePorts.length === standardPortCount ? "Good" : compatiblePorts.length === 0 ? "Poor" : "Fair";
-
     const actionItems = [
       `Confirm draft and berth clearance directly with ${
         compatiblePorts.length > 0
@@ -884,7 +956,6 @@ const ForecastResults = () => {
       utilizationNote,
       timingNote,
     ];
-
     if (restrictedPorts.length > 0) {
       actionItems.push(
         `${restrictedPorts.length} port${restrictedPorts.length === 1 ? "" : "s"} on this route (${restrictedPorts
@@ -892,19 +963,16 @@ const ForecastResults = () => {
           .join(", ")}) will need lightering, a smaller parcel size, or an alternate berth for this vessel class.`
       );
     }
-
     if (betterAlt) {
       actionItems.push(
         `${betterAlt.type} reaches ${betterAlt.compatible.length} of ${betterAlt.standardCount} ports on this lane, versus ${compatiblePorts.length} for ${vesselType} — worth a freight-rate comparison if scheduling allows.`
       );
     }
-
     if (analysis?.forecast?.riskLevel) {
       actionItems.push(
         `Market risk is assessed as ${analysis.forecast.riskLevel} — build appropriate laycan and demurrage buffers into the charter party.`
       );
     }
-
     return {
       utilizationPct,
       utilizationNote,
@@ -916,7 +984,6 @@ const ForecastResults = () => {
       actionItems,
     };
   }, [vesselSpecs, cargoQuantity, analysis, vesselComparison, compatiblePorts, restrictedPorts, specialPorts, vesselType]);
-
   // ---------------------------------------------------------------------
   // DOWNLOADABLE PDF REPORT — renders a light-theme, print-friendly copy of
   // the results into an offscreen container, captures it with html2canvas,
@@ -925,7 +992,6 @@ const ForecastResults = () => {
   // Requires: npm install jspdf html2canvas
   // ---------------------------------------------------------------------
   const [generatingReport, setGeneratingReport] = useState(false);
-
   const imageToBase64 = async (url) => {
     try {
       const res = await fetch(url);
@@ -940,13 +1006,11 @@ const ForecastResults = () => {
       return null;
     }
   };
-
   // Inner content only (no <html>/<head>) — this gets injected into an
   // offscreen div and captured with html2canvas, so a light theme is used
   // for print/PDF legibility regardless of the app's dark UI.
   const buildReportContentHTML = (imageDataUrl, chartSvgMarkup) => {
   const generatedAt = new Date().toLocaleString();
-
   const marketSection = analysis
     ? `
     <div class="card">
@@ -968,7 +1032,6 @@ const ForecastResults = () => {
       }
     </div>`
     : "";
-
   const chartingSection = `
     <div class="card">
       <h2>Chartering Recommendation</h2>
@@ -983,7 +1046,6 @@ const ForecastResults = () => {
         .map((a) => `<li style="margin-bottom:4px;">${a}</li>`)
         .join("")}</ul></div>
     </div>`;
-
   return `
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
@@ -1018,7 +1080,6 @@ const ForecastResults = () => {
       </div>
       <div class="generated-at">Generated<br/>${generatedAt}</div>
     </div>
-
     <div class="badge-row">
       <span class="badge">${origin}</span>
       <span class="badge route-arrow">&#8594;</span>
@@ -1026,7 +1087,6 @@ const ForecastResults = () => {
       <span class="badge accent">${vesselType}</span>
       ${distanceInfo ? `<span class="badge subtle">~${distanceInfo.nauticalMiles.toLocaleString()} nm</span>` : ""}
     </div>
-
     <div class="card">
       ${imageDataUrl ? `<img class="vessel" src="${imageDataUrl}" alt="${vesselType}" />` : ""}
       <h2>${vesselType} Charter Analysis</h2>
@@ -1038,18 +1098,15 @@ const ForecastResults = () => {
         <div><div class="metric-label">Compatible Ports</div><div class="metric-value">${compatiblePorts.length} / ${ports.length}</div></div>
       </div>
     </div>
-
     <div class="card">
       <h2>Vessel Specifications</h2>
       <div class="grid">
         ${specMetrics.map((m) => `<div><div class="metric-label">${m.title}</div><div class="metric-value">${m.value}</div></div>`).join("")}
       </div>
     </div>
-
     ${marketSection}
     ${chartSvgMarkup ? `<div class="card"><h2>Historical &amp; Projected Rates</h2>${chartSvgMarkup}</div>` : ""}
     ${chartingSection}
-
     <div class="card">
       <h2>Compatible Ports (${compatiblePorts.length})</h2>
       <table>
@@ -1064,7 +1121,6 @@ const ForecastResults = () => {
         </tbody>
       </table>
     </div>
-
     ${
       restrictedPorts.length
         ? `<div class="card">
@@ -1080,7 +1136,6 @@ const ForecastResults = () => {
     </div>`
         : ""
     }
-
     <div class="card">
       <h2>Vessel Class Comparison</h2>
       <table>
@@ -1095,11 +1150,9 @@ const ForecastResults = () => {
         </tbody>
       </table>
     </div>
-
     <div class="footer">Generated by the Freight &amp; Vessel Decision Intelligence tool. For planning purposes only — verify against live market data before making chartering decisions.</div>
   </div>`;
 };
-
   const handleDownloadReport = async () => {
     setGeneratingReport(true);
     let holder = null;
@@ -1110,7 +1163,6 @@ const ForecastResults = () => {
         : null;
       const chartSvgMarkup = chartGeom ? renderStaticChartSVG(chartGeom) : "";
       const contentHTML = buildReportContentHTML(imageDataUrl, chartSvgMarkup);
-
       holder = document.createElement("div");
       holder.style.position = "fixed";
       holder.style.top = "0";
@@ -1119,35 +1171,29 @@ const ForecastResults = () => {
       holder.style.backgroundColor = "#ffffff";
       holder.innerHTML = contentHTML;
       document.body.appendChild(holder);
-
       // Give images/fonts a beat to settle before capture.
       await new Promise((resolve) => setTimeout(resolve, 60));
-
       const canvas = await html2canvas(holder, {
         scale: 2,
         backgroundColor: "#ffffff",
         useCORS: true,
       });
-
       const pdf = new jsPDF("p", "pt", "a4");
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       const imgWidth = pageWidth;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       const imgData = canvas.toDataURL("image/png");
-
       let heightLeft = imgHeight;
       let position = 0;
       pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
-
       while (heightLeft > 0) {
         position = heightLeft - imgHeight;
         pdf.addPage();
         pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
         heightLeft -= pageHeight;
       }
-
       pdf.save(`Freight_Forecast_${origin}_${destination}_${vesselType}`.replace(/\s+/g, "_") + ".pdf");
     } catch (err) {
       // eslint-disable-next-line no-console
@@ -1159,19 +1205,48 @@ const ForecastResults = () => {
       setGeneratingReport(false);
     }
   };
-
   return (
-    <main
-      className="min-vh-100 d-flex flex-column text-white"
-      style={{
-        backgroundColor: "#070d18",
-        fontFamily: "'Segoe UI', Roboto, sans-serif",
-      }}
-    >
-      <Navbar />
-
+    <>
+      <DashboardStyles />
+      <main
+        className={`min-vh-100 d-flex text-white dashboard-shell ${sidebarOpen ? "sidebar-open" : ""}`}
+        style={{
+          backgroundColor: "var(--bg-primary)",
+          fontFamily: "'Segoe UI', Roboto, sans-serif",
+        }}
+      >
+        <aside className="dashboard-sidebar">
+          <div className="dashboard-brand"><span className="dashboard-brand-mark">B</span><span><strong>Butter Freight</strong><small>Intelligent chartering</small></span></div>
+          <nav className="dashboard-nav" aria-label="Dashboard navigation">
+            <a className="dashboard-nav-link active" href="#overview">⌂ <span>Overview</span></a>
+            <a className="dashboard-nav-link" href="#market-analysis">▦ <span>Market Snapshot</span></a>
+            <a className="dashboard-nav-link" href="#rate-trend">⌁ <span>Rate Trend</span></a>
+            <a className="dashboard-nav-link" href="#vessel-profile">▣ <span>Vessel Profile</span></a>
+            <a className="dashboard-nav-link" href="#vessel-comparison">⇄ <span>Vessel Comparison</span></a>
+            <a className="dashboard-nav-link" href="#port-analysis">◇ <span>Ports</span></a>
+            <a className="dashboard-nav-link" href="#recommendation">! <span>Recommendation</span></a>
+            <Link className="dashboard-nav-link" to="/price-comparison">▤ <span>Price Comparison</span></Link>
+          </nav>
+          <div className="sidebar-note"><strong>AI Co-Pilot</strong><p>Ask anything about routes, markets or vessels.</p><button className="btn" type="button" onClick={() => document.getElementById("recommendation")?.scrollIntoView({ behavior: "smooth" })}>✦ Ask AI</button></div>
+        </aside>
+        {sidebarOpen && <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} />}
+        <div className="dashboard-content">
+          <header className="dashboard-topbar">
+            <button
+              className="sidebar-toggle"
+              type="button"
+              aria-label="Toggle navigation"
+              onClick={() => setSidebarOpen((open) => !open)}
+            >
+              ☰
+            </button>
+            <button className="dashboard-back" type="button" onClick={() => navigate(-1)}>← <span>Back</span></button>
+            <span className="topbar-title">Decision cockpit</span>
+            <div className="topbar-actions"><span>◷ May 26, 2025</span><span className="avatar">SS</span><strong>{JSON.parse(localStorage.getItem("user") || "{}").fullName || "Operator"}</strong></div>
+          </header>
+          <Navbar />
       {/* HERO SECTION */}
-      <section className="py-5">
+      <section id="overview" className="py-5">
         <div className="container py-4 py-lg-5">
           <div className="row align-items-center g-5">
             <div className="col-lg-7">
@@ -1181,54 +1256,46 @@ const ForecastResults = () => {
               >
                 AI-GENERATED FORECAST RESULTS
               </span>
-
               <h1 className="display-4 fw-bold text-white">
                 Freight & Vessel
                 <br />
                 <span style={{ color: "#38bdf8" }}>Decision Intelligence</span>
               </h1>
-
               <p className="lead mt-3" style={{ color: "#8492a6" }}>
                 AI-assisted analysis of freight conditions, vessel suitability,
                 and East Coast port infrastructure for your charter scenario.
               </p>
-
               <div className="d-flex flex-wrap align-items-center gap-2 mt-4">
                 <span
-                  className="badge rounded-pill px-3 py-2 fs-6 fw-normal"
+                  className="forecast-route-badge badge rounded-pill px-3 py-2 fs-6 fw-normal"
                   style={{ backgroundColor: "#0b1320", color: "#e2e8f0", border: "1px solid #162234" }}
                 >
                   {origin}
                 </span>
-
                 <span className="fw-bold" style={{ color: "#38bdf8" }}>
                   →
                 </span>
-
                 <span
-                  className="badge rounded-pill px-3 py-2 fs-6 fw-normal"
+                  className="forecast-route-badge badge rounded-pill px-3 py-2 fs-6 fw-normal"
                   style={{ backgroundColor: "#0b1320", color: "#e2e8f0", border: "1px solid #162234" }}
                 >
                   {destination}
                 </span>
-
                 <span
                   className="badge rounded-pill px-3 py-2 fs-6 fw-semibold"
                   style={{ backgroundColor: "#1e88e5", color: "#ffffff" }}
                 >
                   {vesselType}
                 </span>
-
                 {distanceInfo && (
                   <span
-                    className="badge rounded-pill px-3 py-2 fs-6 fw-normal"
+                    className="forecast-route-badge badge rounded-pill px-3 py-2 fs-6 fw-normal"
                     style={{ backgroundColor: "#0b1320", color: "#38bdf8", border: "1px solid #162234" }}
                   >
                     ~{distanceInfo.nauticalMiles.toLocaleString()} nm
                   </span>
                 )}
               </div>
-
               <button
                 className="btn fw-semibold px-4 py-2 rounded-3 text-white mt-4 d-inline-flex align-items-center gap-2"
                 style={{ backgroundColor: "#0f766e", border: "1px solid #14b8a6" }}
@@ -1255,7 +1322,6 @@ const ForecastResults = () => {
                 )}
               </button>
             </div>
-
             {/* SUMMARY CARD */}
             <div className="col-lg-5">
               <div
@@ -1269,12 +1335,10 @@ const ForecastResults = () => {
                   >
                     FORECAST SCENARIO
                   </small>
-
                   <h4 className="fw-bold mt-2 mb-4 text-white">{vesselType} Charter Analysis</h4>
-
                   {vesselImage && (
                     <div
-                      className="rounded-3 mb-4 d-flex align-items-center justify-content-center"
+                      className="results-vessel-image rounded-3 mb-4 d-flex align-items-center justify-content-center"
                       style={{ backgroundColor: "#070d18", border: "1px solid #162234", padding: "1rem" }}
                     >
                       <img
@@ -1284,7 +1348,6 @@ const ForecastResults = () => {
                       />
                     </div>
                   )}
-
                   <div className="d-flex flex-column gap-3">
                     <div className="d-flex justify-content-between pb-3" style={{ borderBottom: "1px solid #162234" }}>
                       <span style={{ color: "#8492a6" }}>Cargo</span>
@@ -1292,17 +1355,14 @@ const ForecastResults = () => {
                         {Number(cargoQuantity).toLocaleString()} MT ({cargoType})
                       </strong>
                     </div>
-
                     <div className="d-flex justify-content-between pb-3" style={{ borderBottom: "1px solid #162234" }}>
                       <span style={{ color: "#8492a6" }}>Forecast</span>
                       <strong className="text-white">{forecastPeriod}</strong>
                     </div>
-
                     <div className="d-flex justify-content-between pb-3" style={{ borderBottom: "1px solid #162234" }}>
                       <span style={{ color: "#8492a6" }}>Vessel</span>
                       <strong className="text-white">{vesselType}</strong>
                     </div>
-
                     <div className="d-flex justify-content-between pb-3" style={{ borderBottom: "1px solid #162234" }}>
                       <span style={{ color: "#8492a6" }}>Approx. Distance</span>
                       <strong className="text-white">
@@ -1311,7 +1371,6 @@ const ForecastResults = () => {
                           : "N/A"}
                       </strong>
                     </div>
-
                     <div className="d-flex justify-content-between align-items-center">
                       <span style={{ color: "#8492a6" }}>Compatible Ports</span>
                       <strong className="fs-4 fw-bold" style={{ color: "#38bdf8" }}>
@@ -1326,8 +1385,18 @@ const ForecastResults = () => {
         </div>
       </section>
 
+      <section className="route-snapshot-section py-4">
+        <div className="container">
+          <div className="route-snapshot card border-0 rounded-4 p-3">
+            <div className="route-snapshot-heading"><div><small className="eyebrow">FREIGHT MARKET SNAPSHOT</small><h3>{origin} <span>→</span> {destination}</h3></div><span className="status-pill">● Forecast Stable</span></div>
+            <div className="route-snapshot-grid"><div className="route-facts"><div className="route-line"><span className="route-dot sage-dot"></span><div><small>Loading Port</small><strong>{originCoordinates?.label || origin}</strong></div><span className="route-vessel">▣ {vesselType}</span><div className="route-arrow">→</div><span className="route-dot coral-dot"></span><div><small>Discharge Port</small><strong>{destination}, India</strong></div></div><div className="route-kpis"><div><small>Vessel Type</small><strong>{vesselType}</strong></div><div><small>Cargo</small><strong>{Number(cargoQuantity).toLocaleString()} MT</strong></div><div><small>Laycan Window</small><strong>{forecastPeriod}</strong></div><div><small>Risk Level</small><strong>{analysis?.forecast?.riskLevel || "Pending"}</strong></div></div></div><div className="route-map-panel"><RouteMap origin={origin} destination={destination} originLabel={originCoordinates?.label} originCoordinates={originCoordinates} destinationCoordinates={destinationCoordinates} /></div></div>
+          </div>
+        </div>
+      </section>
+
       {/* MARKET SCENARIO */}
       <section
+        id="market-analysis"
         className="py-5"
         style={{ backgroundColor: "#0b1320", borderTop: "1px solid #162234", borderBottom: "1px solid #162234" }}
       >
@@ -1341,7 +1410,6 @@ const ForecastResults = () => {
               AI-generated freight market assessment and rate projections for the selected trade lane.
             </p>
           </div>
-
           {loadingAnalysis && (
             <div className="text-center py-5">
               <Spinner size={44} />
@@ -1350,7 +1418,6 @@ const ForecastResults = () => {
               </div>
             </div>
           )}
-
           {analysisError && !loadingAnalysis && (
             <div className="row justify-content-center">
               <div className="col-md-8 col-lg-6">
@@ -1379,12 +1446,10 @@ const ForecastResults = () => {
               </div>
             </div>
           )}
-
           {analysis && !loadingAnalysis && !analysisError && (
             <>
               {/* Core metric cards */}
               <div className="row g-4">
-
                 <div className="col-md-3 col-6">
                   <div className="card border-0 rounded-4 h-100 p-2" style={{ backgroundColor: "#070d18", border: "1px solid #162234" }}>
                     <div className="card-body p-4">
@@ -1394,7 +1459,6 @@ const ForecastResults = () => {
                     </div>
                   </div>
                 </div>
-
                 <div className="col-md-3 col-6">
                   <div className="card border-0 rounded-4 h-100 p-2" style={{ backgroundColor: "#070d18", border: "1px solid #162234" }}>
                     <div className="card-body p-4">
@@ -1404,7 +1468,6 @@ const ForecastResults = () => {
                     </div>
                   </div>
                 </div>
-
                 <div className="col-md-3 col-6">
                   <div className="card border-0 rounded-4 h-100 p-2" style={{ backgroundColor: "#070d18", border: "1px solid #162234" }}>
                     <div className="card-body p-4">
@@ -1417,7 +1480,6 @@ const ForecastResults = () => {
                   </div>
                 </div>
               </div>
-
               {/* Risk gauge + supply/demand snapshot */}
               <div className="row g-4 mt-1">
                 <div className="col-lg-6">
@@ -1455,7 +1517,6 @@ const ForecastResults = () => {
                     </div>
                   </div>
                 </div>
-
                 <div className="col-lg-6">
                   <div className="card border-0 rounded-4 h-100 p-2" style={{ backgroundColor: "#070d18", border: "1px solid #162234" }}>
                     <div className="card-body p-4">
@@ -1487,7 +1548,6 @@ const ForecastResults = () => {
                   </div>
                 </div>
               </div>
-
               <div className="card border-0 rounded-4 mt-4 p-2" style={{ backgroundColor: "#070d18", border: "1px solid #162234" }}>
                 <div className="card-body p-4 p-md-5">
                   <small className="text-uppercase fw-bold tracking-wider" style={{ color: "#38bdf8", fontSize: "0.75rem" }}>
@@ -1497,7 +1557,6 @@ const ForecastResults = () => {
                   <p className="mt-3 mb-0" style={{ color: "#8492a6", lineHeight: "1.7" }}>
                     {analysis.forecast?.reasoning}
                   </p>
-
                   {analysis.forecast?.keyFactors?.length > 0 && (
                     <>
                       <small className="text-uppercase fw-bold d-block mt-4" style={{ color: "#64748b", fontSize: "0.7rem" }}>
@@ -1510,7 +1569,6 @@ const ForecastResults = () => {
                       </ul>
                     </>
                   )}
-
                   {analysis.forecast?.charterRecommendation && (
                     <>
                       <small className="text-uppercase fw-bold d-block mt-4" style={{ color: "#64748b", fontSize: "0.7rem" }}>
@@ -1527,10 +1585,9 @@ const ForecastResults = () => {
           )}
         </div>
       </section>
-
       {/* FREIGHT RATE TREND CHART */}
       {analysis?.rateData?.length > 0 && !loadingAnalysis && !analysisError && (
-        <section className="py-5">
+        <section id="rate-trend" className="py-5">
           <div className="container py-4">
             <div className="text-center mb-4">
               <small className="text-uppercase fw-bold tracking-wider" style={{ color: "#38bdf8", fontSize: "0.75rem" }}>
@@ -1541,7 +1598,6 @@ const ForecastResults = () => {
                 Solid line marks recorded rates; dashed line marks the AI-projected path. Hover any point for detail.
               </p>
             </div>
-
             <div className="card border-0 rounded-4 p-3" style={{ backgroundColor: "#0b1320", border: "1px solid #162234" }}>
               <div className="card-body p-4">
                 <EnhancedRateChart data={analysis.rateData} />
@@ -1550,9 +1606,8 @@ const ForecastResults = () => {
           </div>
         </section>
       )}
-
       {/* VESSEL PROFILE */}
-      <section className="py-5">
+      <section id="vessel-profile" className="py-5">
         <div className="container py-4">
           <div className="text-center mb-5">
             <small className="text-uppercase fw-bold tracking-wider" style={{ color: "#38bdf8", fontSize: "0.75rem" }}>
@@ -1561,7 +1616,6 @@ const ForecastResults = () => {
             <h2 className="fw-bold mt-2 text-white">Selected Vessel Specifications</h2>
             <p style={{ color: "#8492a6" }}>Parameters evaluated against port draft and berth limits.</p>
           </div>
-
           <div className="row g-4 align-items-stretch">
             {vesselImage && (
               <div className="col-lg-4">
@@ -1580,7 +1634,6 @@ const ForecastResults = () => {
                 </div>
               </div>
             )}
-
             <div className={vesselImage ? "col-lg-8" : "col-12"}>
               <div className="row g-4 h-100">
                 {specMetrics.map((metric) => (
@@ -1602,9 +1655,9 @@ const ForecastResults = () => {
           </div>
         </div>
       </section>
-
       {/* VESSEL CLASS COMPARISON — explanations for every option, not just the selected one */}
       <section
+        id="vessel-comparison"
         className="py-5"
         style={{ backgroundColor: "#0b1320", borderTop: "1px solid #162234", borderBottom: "1px solid #162234" }}
       >
@@ -1618,7 +1671,6 @@ const ForecastResults = () => {
               The same port-compatibility check run against each vessel class, so you can see the trade-offs of choosing differently.
             </p>
           </div>
-
           <div className="row g-4">
             {vesselComparison.map((v) => {
               const img = vesselImages[v.type];
@@ -1644,16 +1696,14 @@ const ForecastResults = () => {
                           </span>
                         )}
                       </div>
-
                       {img && (
                         <div
-                          className="rounded-3 mb-3 d-flex align-items-center justify-content-center"
+                          className="comparison-vessel-image rounded-3 mb-3 d-flex align-items-center justify-content-center"
                           style={{ backgroundColor: "#0b1320", border: "1px solid #162234", padding: "0.75rem" }}
                         >
                           <img src={img} alt={v.type} style={{ width: "100%", height: "70px", objectFit: "contain" }} />
                         </div>
                       )}
-
                       <div className="small mb-3" style={{ color: "#8492a6" }}>
                         <div className="d-flex justify-content-between">
                           <span>DWT</span>
@@ -1668,14 +1718,12 @@ const ForecastResults = () => {
                           <strong className="text-white">{v.spec.maxDraft} m</strong>
                         </div>
                       </div>
-
                       <div
-                        className="fw-bold mb-2"
+                        className="compatibility-label fw-bold mb-2"
                         style={{ color: v.compatible.length === v.standardCount ? "#34d399" : v.compatible.length === 0 ? "#f87171" : "#fbbf24" }}
                       >
                         {v.compatible.length} / {v.standardCount} ports compatible
                       </div>
-
                       <p className="small mb-0" style={{ color: "#8492a6", lineHeight: 1.6 }}>
                         {v.verdict}
                       </p>
@@ -1687,9 +1735,8 @@ const ForecastResults = () => {
           </div>
         </div>
       </section>
-
       {/* PORT INFRASTRUCTURE ANALYSIS */}
-      <section className="py-5">
+      <section id="port-analysis" className="py-5">
         <div className="container py-4">
           <div className="text-center mb-5">
             <small className="text-uppercase fw-bold tracking-wider" style={{ color: "#38bdf8", fontSize: "0.75rem" }}>
@@ -1697,10 +1744,9 @@ const ForecastResults = () => {
             </small>
             <h2 className="fw-bold mt-2 text-white">Port Operation Compatibility</h2>
           </div>
-
           <div className="row g-4 mb-5">
             <div className="col-md-4">
-              <div className="card border-0 rounded-4 p-2" style={{ backgroundColor: "#070d18", border: "1px solid #162234" }}>
+              <div className="recommendation-card card border-0 rounded-4 p-2" style={{ backgroundColor: "#070d18", border: "1px solid #162234" }}>
                 <div className="card-body p-4">
                   <div className="fs-2 mb-2">✅</div>
                   <small style={{ color: "#8492a6" }}>Compatible</small>
@@ -1708,7 +1754,6 @@ const ForecastResults = () => {
                 </div>
               </div>
             </div>
-
             <div className="col-md-4">
               <div className="card border-0 rounded-4 p-2" style={{ backgroundColor: "#070d18", border: "1px solid #162234" }}>
                 <div className="card-body p-4">
@@ -1718,7 +1763,6 @@ const ForecastResults = () => {
                 </div>
               </div>
             </div>
-
             <div className="col-md-4">
               <div className="card border-0 rounded-4 p-2" style={{ backgroundColor: "#070d18", border: "1px solid #162234" }}>
                 <div className="card-body p-4">
@@ -1729,14 +1773,12 @@ const ForecastResults = () => {
               </div>
             </div>
           </div>
-
           {compatiblePorts.length > 0 && (
             <div className="mb-5">
               <small className="text-uppercase fw-bold tracking-wider" style={{ color: "#38bdf8", fontSize: "0.75rem" }}>
                 RECOMMENDED PORTS
               </small>
               <h3 className="fw-bold mt-1 mb-4 text-white">Compatible Destinations</h3>
-
               <div className="row g-4">
                 {compatiblePorts.map((port) => (
                   <div className="col-md-6 col-lg-4" key={port.id}>
@@ -1754,9 +1796,7 @@ const ForecastResults = () => {
                             Compatible
                           </span>
                         </div>
-
                         <hr style={{ borderColor: "#162234" }} />
-
                         <div className="row g-3">
                           <div className="col-6">
                             <small style={{ color: "#64748b" }}>Draft</small>
@@ -1775,7 +1815,6 @@ const ForecastResults = () => {
                             <div className="fw-bold text-white">{port.berths ?? "N/A"}</div>
                           </div>
                         </div>
-
                         {port.notes && (
                           <p className="small mt-3 pt-3 mb-0" style={{ color: "#8492a6", borderTop: "1px solid #162234" }}>
                             {port.notes}
@@ -1788,14 +1827,12 @@ const ForecastResults = () => {
               </div>
             </div>
           )}
-
           {restrictedPorts.length > 0 && (
             <div>
               <small className="text-uppercase fw-bold tracking-wider" style={{ color: "#38bdf8", fontSize: "0.75rem" }}>
                 OPERATIONAL LIMITATIONS
               </small>
               <h3 className="fw-bold mt-1 mb-4 text-white">Ports Requiring Attention</h3>
-
               <div className="row g-4">
                 {restrictedPorts.map((port) => (
                   <div className="col-md-6" key={port.id}>
@@ -1813,7 +1850,6 @@ const ForecastResults = () => {
                             Restricted
                           </span>
                         </div>
-
                         <div>
                           {port.restrictions.map((restriction, index) => (
                             <div key={index} className="d-flex align-items-center gap-2 mb-2">
@@ -1833,9 +1869,9 @@ const ForecastResults = () => {
           )}
         </div>
       </section>
-
       {/* CHARTERING RECOMMENDATION */}
       <section
+        id="recommendation"
         className="py-5"
         style={{ backgroundColor: "#0b1320", borderTop: "1px solid #162234", borderBottom: "1px solid #162234" }}
       >
@@ -1846,28 +1882,24 @@ const ForecastResults = () => {
             </small>
             <h2 className="fw-bold mt-2 text-white">Chartering Strategy Recommendation</h2>
           </div>
-
           <div className="row justify-content-center">
             <div className="col-lg-10">
               <div className="card border-0 rounded-4 p-2" style={{ backgroundColor: "#070d18", border: "1px solid #162234" }}>
                 <div className="card-body p-4 p-md-5">
                   <div className="d-flex gap-4 align-items-start flex-column flex-md-row">
                     <div className="fs-1">📊</div>
-
                     <div className="flex-grow-1">
                       <h4 className="fw-bold text-white">
                         {compatiblePorts.length > 0
                           ? "Vessel-port compatibility is favorable."
                           : "Consider an alternative vessel class."}
                       </h4>
-
                       {loadingAnalysis && (
                         <div className="mt-3 d-flex align-items-center gap-3">
                           <Spinner size={22} />
                           <span style={{ color: "#8492a6" }}>Generating recommendation…</span>
                         </div>
                       )}
-
                       {analysisError && !loadingAnalysis && (
                         <div
                           className="mt-3 p-3 rounded-3 d-flex justify-content-between align-items-center flex-wrap gap-2"
@@ -1883,13 +1915,11 @@ const ForecastResults = () => {
                           </button>
                         </div>
                       )}
-
                       {analysis && !loadingAnalysis && !analysisError && (
                         <p className="mt-3" style={{ color: "#8492a6" }}>
                           {analysis.forecast?.charterRecommendation}
                         </p>
                       )}
-
                       <p className="mb-0" style={{ color: "#8492a6" }}>
                         {compatiblePorts.length > 0
                           ? `The selected ${vesselType} can operate at ${compatiblePorts.length} of ${ports.length} analyzed locations.`
@@ -1897,11 +1927,10 @@ const ForecastResults = () => {
                       </p>
                     </div>
                   </div>
-
                   {/* Decision factor ratings */}
                   <div className="row g-3 mt-4">
                     <div className="col-md-4">
-                      <div className="rounded-3 p-3 h-100" style={{ backgroundColor: "#0b1320", border: "1px solid #162234" }}>
+                      <div className="decision-rating rounded-3 p-3 h-100" style={{ backgroundColor: "#0b1320", border: "1px solid #162234" }}>
                         <small className="text-uppercase" style={{ color: "#64748b", fontSize: "0.68rem" }}>
                           Vessel Fit
                         </small>
@@ -1921,7 +1950,7 @@ const ForecastResults = () => {
                       </div>
                     </div>
                     <div className="col-md-4">
-                      <div className="rounded-3 p-3 h-100" style={{ backgroundColor: "#0b1320", border: "1px solid #162234" }}>
+                      <div className="decision-rating rounded-3 p-3 h-100" style={{ backgroundColor: "#0b1320", border: "1px solid #162234" }}>
                         <small className="text-uppercase" style={{ color: "#64748b", fontSize: "0.68rem" }}>
                           Market Timing
                         </small>
@@ -1941,7 +1970,7 @@ const ForecastResults = () => {
                       </div>
                     </div>
                     <div className="col-md-4">
-                      <div className="rounded-3 p-3 h-100" style={{ backgroundColor: "#0b1320", border: "1px solid #162234" }}>
+                      <div className="decision-rating rounded-3 p-3 h-100" style={{ backgroundColor: "#0b1320", border: "1px solid #162234" }}>
                         <small className="text-uppercase" style={{ color: "#64748b", fontSize: "0.68rem" }}>
                           Risk Level
                         </small>
@@ -1949,7 +1978,6 @@ const ForecastResults = () => {
                       </div>
                     </div>
                   </div>
-
                   {/* Action items */}
                   <div className="mt-4">
                     <small className="text-uppercase fw-bold" style={{ color: "#38bdf8", fontSize: "0.72rem" }}>
@@ -1961,7 +1989,6 @@ const ForecastResults = () => {
                       ))}
                     </ul>
                   </div>
-
                   {chartingDetails.betterAlt && (
                     <p className="small mt-3 mb-0" style={{ color: "#64748b" }}>
                       See the Vessel Class Comparison above for options with broader port access on this route.
@@ -1973,12 +2000,11 @@ const ForecastResults = () => {
           </div>
         </div>
       </section>
-
       {/* FOOTER CTA */}
       <section className="py-5 mt-auto">
         <div className="container">
           <div
-            className="rounded-4 p-4 p-md-5 text-white shadow-lg"
+            className="results-footer-cta rounded-4 p-4 p-md-5 text-white shadow-lg"
             style={{ backgroundColor: "#0b1320", border: "1px solid #1e2d42" }}
           >
             <div className="row align-items-center">
@@ -1988,7 +2014,6 @@ const ForecastResults = () => {
                   Adjust the route, vessel class, or cargo requirements and run another scenario.
                 </p>
               </div>
-
               <div className="col-lg-4 text-lg-end mt-4 mt-lg-0 d-flex flex-column flex-lg-row gap-2 justify-content-lg-end">
                 <button
                   className="btn btn-lg px-4 rounded-3 fw-semibold"
@@ -2010,8 +2035,9 @@ const ForecastResults = () => {
           </div>
         </div>
       </section>
-    </main>
+        </div>
+      </main>
+    </>
   );
 };
-
 export default ForecastResults;

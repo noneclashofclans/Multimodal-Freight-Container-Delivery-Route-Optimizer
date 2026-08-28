@@ -54,7 +54,7 @@ function ForecastQuery() {
 
   return (
     <div
-      style={{ backgroundColor: "#070d18", minHeight: "100vh" }}
+      style={{ backgroundColor: "var(--bg-primary)", minHeight: "100vh" }}
       className="text-white"
     >
       <Navbar />
@@ -186,7 +186,7 @@ function ForecastQuery() {
                   {vesselOptions.map((vessel) => (
                     <div className="col-6 col-md-3" key={vessel.type}>
                       <div
-                        className="rounded-4 p-3 h-100 text-center"
+                        className="forecast-option vessel-option rounded-4 p-3 h-100 text-center"
                         style={{
                           backgroundColor: "#070d18",
                           border:
@@ -318,7 +318,7 @@ function ForecastQuery() {
                 <div className="row mb-4">
                   <div className="col-md-6">
                     <div
-                      className="rounded-4 p-3"
+                      className="forecast-option duration-option rounded-4 p-3"
                       style={{
                         backgroundColor: "#070d18",
                         border:
@@ -356,7 +356,7 @@ function ForecastQuery() {
 
                   <div className="col-md-6 mt-3 mt-md-0">
                     <div
-                      className="rounded-4 p-3"
+                      className="forecast-option duration-option rounded-4 p-3"
                       style={{
                         backgroundColor: "#070d18",
                         border:
@@ -395,7 +395,7 @@ function ForecastQuery() {
 
                 {/* Summary */}
                 <div
-                  className="rounded-4 p-3 mb-4"
+                  className="forecast-summary rounded-4 p-3 mb-4"
                   style={{
                     backgroundColor: "#070d18",
                     border: "1px solid #162234",

@@ -344,7 +344,7 @@ const About = () => {
                 ].map((port) => (
                   <span
                     key={port}
-                    className="badge rounded-pill px-3 py-2 text-white fw-normal"
+                    className="about-port-badge badge rounded-pill px-3 py-2 fw-normal"
                     style={{
                       backgroundColor: "#0b1320",
                       border: "1px solid #1b2a3f",
@@ -434,9 +434,9 @@ const About = () => {
                 <button
                   className="btn btn-lg px-4 fw-bold text-white rounded-3"
                   style={{ backgroundColor: "#1e88e5" }}
-                  onClick={() => navigate("/forecast_results")}
+                  onClick={() => navigate("/forecast_query")}
                 >
-                  Open Dashboard →
+                  Make a forecast →
                 </button>
               </div>
             </div>

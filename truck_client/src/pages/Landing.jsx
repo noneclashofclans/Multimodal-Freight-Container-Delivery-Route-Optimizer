@@ -19,7 +19,7 @@ const Home = () => {
 
   return (
     <main
-      style={{ backgroundColor: "#070d18", minHeight: "100vh" }}
+      style={{ backgroundColor: "var(--bg-primary)", minHeight: "100vh" }}
       className="text-white"
     >
       <Navbar />
@@ -27,7 +27,7 @@ const Home = () => {
       {/* HERO */}
       <section
         className="py-5"
-        style={{ backgroundColor: "#070d18" }}
+        style={{ backgroundColor: "var(--bg-primary)" }}
       >
         <div className="container py-5">
           <div className="row align-items-center g-5">
@@ -131,7 +131,7 @@ const Home = () => {
                   </div>
 
                   <div
-                    className="rounded-4 my-4 p-4"
+                    className="route-preview rounded-4 my-4 p-4"
                     style={{
                       height: "230px",
                       backgroundColor: "#070d18",
@@ -226,7 +226,7 @@ const Home = () => {
       {/* FEATURES */}
       <section
         className="py-5"
-        style={{ backgroundColor: "#070d18" }}
+        style={{ backgroundColor: "var(--bg-primary)" }}
         id="features"
       >
         <div className="container py-4">
@@ -369,7 +369,7 @@ const Home = () => {
       </section>
 
       {/* CTA */}
-      <section className="py-5" style={{ backgroundColor: "#070d18" }}>
+      <section className="py-5" style={{ backgroundColor: "var(--bg-primary)" }}>
         <div className="container py-4">
           <div
             className="rounded-4 p-5 text-white"

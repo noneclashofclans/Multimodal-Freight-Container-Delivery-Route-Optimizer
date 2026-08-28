@@ -1,11 +1,12 @@
-import React from "react";
 import { useNavigate, useLocation, Link, NavLink } from "react-router-dom";
 import company_logo from "../assets/trucks.png";
+import { useTheme } from "../../context/ThemeContext";
 import "./Navbar.css";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { theme, toggleTheme } = useTheme();
 
   const isHomePage = location.pathname === "/";
   const isLoginPage = location.pathname === "/login";
@@ -40,17 +41,17 @@ const Navbar = () => {
 
   return (
     <nav
-      className="navbar navbar-expand-lg navbar-dark border-bottom py-2 shadow-sm"
-      style={{ backgroundColor: "#0b1320", borderColor: "#162234" }}
+      className="navbar navbar-expand-lg border-bottom py-2 shadow-sm"
+      style={{ backgroundColor: "var(--bg-secondary)", borderColor: "var(--border-color)" }}
     >
       <div className="container-fluid px-4 px-lg-5">
-        {/* Brand / Logo - Increased Size */}
+        {/* Brand / Logo */}
         <Link to="/" className="navbar-brand d-flex align-items-center me-4">
           <img
             src={company_logo}
             alt="Freight Optimiser"
             className="logo"
-            style={{ height: "52px", objectFit: "contain" }} // Increased from 40px
+            style={{ height: "52px", objectFit: "contain" }}
           />
         </Link>
 
@@ -63,6 +64,9 @@ const Navbar = () => {
           aria-controls="navbarContent"
           aria-expanded="false"
           aria-label="Toggle navigation"
+          style={{
+            filter: theme === "light" ? "invert(1)" : "none",
+          }}
         >
           <span className="navbar-toggler-icon"></span>
         </button>
@@ -72,28 +76,52 @@ const Navbar = () => {
           {/* Centered Navigation Links */}
           <ul className="navbar-nav mx-auto mb-3 mb-lg-0 gap-lg-3 align-items-lg-center">
             <li className="nav-item">
-              <NavLink to="/" className="nav-link text-white-50">
+              <NavLink to="/" className="nav-link nav-link-themed">
                 Home
               </NavLink>
             </li>
 
             {isHomePage && (
               <li className="nav-item">
-                <a className="nav-link text-white-50" href="#features">
+                <a className="nav-link nav-link-themed" href="#features">
                   Features
                 </a>
               </li>
             )}
 
             <li className="nav-item">
-              <NavLink to="/about" className="nav-link text-white-50">
+              <NavLink to="/about" className="nav-link nav-link-themed">
                 About
               </NavLink>
             </li>
           </ul>
 
-          {/* Right Action Area (Dropdown / Login) */}
-          <div className="d-flex flex-column flex-lg-row align-items-lg-center pt-3 pt-lg-0 border-top border-lg-0 border-secondary-subtle">
+          {/* Right Action Area (Theme Toggle / Dropdown / Login) */}
+          <div className="d-flex flex-column flex-lg-row align-items-lg-center gap-lg-3 pt-3 pt-lg-0 border-top border-lg-0 border-secondary-subtle">
+            {/* Light / Dark Mode Toggle */}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="theme-toggle-btn"
+              role="switch"
+              aria-checked={theme === "light"}
+              aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {theme === "dark" ? (
+                // Sun icon — shown when currently dark, click to go light
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="4" />
+                  <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+                </svg>
+              ) : (
+                // Moon icon — shown when currently light, click to go dark
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                </svg>
+              )}
+            </button>
+
             {isLoggedIn ? (
               <div className="nav-item dropdown">
                 {/* Dropdown Trigger */}
@@ -109,7 +137,7 @@ const Navbar = () => {
                     style={{
                       width: "38px",
                       height: "38px",
-                      backgroundColor: "#1e88e5",
+                      backgroundColor: "var(--accent-strong)",
                     }}
                   >
                     {getInitials(user?.fullName)}
@@ -117,25 +145,28 @@ const Navbar = () => {
                   {/* Visible Name on Desktop */}
                   <div className="d-none d-lg-block text-start">
                     <div
-                      className="text-white fw-semibold lh-sm"
-                      style={{ fontSize: "14px" }}
+                      className="fw-semibold lh-sm"
+                      style={{ fontSize: "14px", color: "var(--text-primary)" }}
                     >
                       {user?.fullName || "User Account"}
                     </div>
                   </div>
                 </button>
 
-                {/* Dropdown Menu (Dark theme) */}
+                {/* Dropdown Menu (theme-aware) */}
                 <ul
-                  className="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow mt-3 border-1"
-                  style={{ backgroundColor: "#162234", borderColor: "#1e2d42", minWidth: "220px" }}
+                  className="dropdown-menu dropdown-menu-end shadow mt-3 border-1"
+                  style={{ backgroundColor: "var(--bg-tertiary)", borderColor: "var(--border-color-strong)", minWidth: "220px" }}
                 >
                   {/* Organization Info Header */}
                   <li className="px-3 py-2">
-                    <span className="d-block text-white fw-semibold" style={{ fontSize: "14px" }}>
+                    <span className="d-block fw-semibold" style={{ fontSize: "14px", color: "var(--text-primary)" }}>
                       {user?.fullName || "User Account"}
                     </span>
-                    <span className="d-block text-white-50 mt-1 d-flex align-items-center gap-2" style={{ fontSize: "12px" }}>
+                    <span
+                      className="d-block mt-1 d-flex align-items-center gap-2"
+                      style={{ fontSize: "12px", color: "var(--text-secondary)" }}
+                    >
                       <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
                         <path d="M14.763.075A.5.5 0 0 1 15 .5v15a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5V14h-1v1.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V10a.5.5 0 0 1 .342-.474L6 7.64V4.5a.5.5 0 0 1 .276-.447l8-4a.5.5 0 0 1 .487.022M6 8.694 1 10.36V15h5zM7 15h2v-1.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 .5.5V15h2V1.309l-7 3.5z"/>
                         <path d="M2 11h1v1H2zm2 0h1v1H4zm-2 2h1v1H2zm2 0h1v1H4zm4-4h1v1H8zm2 0h1v1h-1zm-2 2h1v1H8zm2 0h1v1h-1zm2-2h1v1h-1zm0 2h1v1h-1zM8 7h1v1H8zm2 0h1v1h-1zm2 0h1v1h-1zM8 5h1v1H8zm2 0h1v1h-1zm2 0h1v1h-1z"/>
@@ -143,9 +174,9 @@ const Navbar = () => {
                       {user?.organization || "No Organization"}
                     </span>
                   </li>
-                  
-                  <li><hr className="dropdown-divider border-secondary" /></li>
-                  
+                  <li>
+                    <hr className="dropdown-divider" style={{ borderColor: "var(--border-color-strong)" }} />
+                  </li>
                   {/* Logout Button */}
                   <li>
                     <button
@@ -165,8 +196,8 @@ const Navbar = () => {
               !isLoginPage && (
                 <Link
                   to="/login"
-                  className="btn btn-sm px-4 py-2 fw-semibold rounded-3 text-white text-decoration-none w-100 w-lg-auto ms-lg-2 shadow-sm"
-                  style={{ backgroundColor: "#1e88e5", border: "none" }}
+                  className="btn btn-sm px-4 py-2 fw-semibold rounded-3 text-white text-decoration-none w-100 w-lg-auto shadow-sm"
+                  style={{ backgroundColor: "var(--accent-strong)", border: "none" }}
                 >
                   Login →
                 </Link>
