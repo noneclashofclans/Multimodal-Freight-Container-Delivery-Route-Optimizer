@@ -753,21 +753,42 @@ const DashboardStyles = () => (
     .sidebar-backdrop { display: none; }
     @media (max-width: 991px) {
       .dashboard-sidebar {
+        left: 12px;
+        top: auto;
+        bottom: 128px;
+        width: min(320px, calc(100vw - 24px));
+        max-height: calc(100vh - 140px);
+        height: auto;
+        padding: 2rem 1.5rem;
+        border: 1px solid #162234;
+        border-radius: 14px;
         position: fixed;
-        left: 0;
-        top: 0;
-        transform: translateX(-100%);
+        box-sizing: border-box;
+        z-index: 1045;
+        transform: translateY(calc(100% + 24px));
         transition: transform 0.25s ease;
         box-shadow: 8px 0 24px rgba(0, 0, 0, 0.4);
       }
-      .dashboard-shell.sidebar-open .dashboard-sidebar { transform: translateX(0); }
-      .sidebar-toggle { display: inline-flex; }
+      .dashboard-shell.sidebar-open .dashboard-sidebar { transform: translateY(0); }
+      .sidebar-toggle {
+        display: inline-flex;
+        position: fixed;
+        left: 12px !important;
+        top: 13% !important;
+        bottom: auto !important;
+        transform: translateY(-50%);
+        width: 48px;
+        height: 48px;
+        background: #0b1320;
+        border-color: #38bdf8;
+        z-index: 1050;
+      }
       .dashboard-shell.sidebar-open .sidebar-backdrop {
         display: block;
         position: fixed;
         inset: 0;
         background: rgba(3, 7, 18, 0.6);
-        z-index: 35;
+        z-index: 1040;
       }
     }
   `}</style>
